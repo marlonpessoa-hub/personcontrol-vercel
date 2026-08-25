@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
 import PhotoModal from './PhotoModal';
 import { formatarMoeda, formatarData } from '../../utils/formatters';
+import { getNomeConta } from '../../utils/user';
 
 const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut }) => {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -48,8 +49,8 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut }) => {
   };
 
   const getInitials = () => {
-    const name = configuracoes?.nomeMotorista || user?.email || 'U';
-    return name.charAt(0).toUpperCase();
+    const nome = getNomeConta(user) || configuracoes?.nomeMotorista || user?.email || 'U';
+    return nome.charAt(0).toUpperCase();
   };
 
   const hasGooglePhoto = user?.app_metadata?.provider === 'google' && user?.user_metadata?.avatar_url;
@@ -88,7 +89,7 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut }) => {
           </button>
         </div>
         <div className="profile-name" data-od-id="profile-name">
-          {configuracoes?.nomeMotorista || 'Motorista'}
+          {getNomeConta(user) || configuracoes?.nomeMotorista || 'Motorista'}
         </div>
         <div className="profile-email" data-od-id="profile-email">
           {user?.email || 'email@exemplo.com'}

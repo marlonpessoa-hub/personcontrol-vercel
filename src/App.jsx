@@ -53,6 +53,14 @@ const App = () => {
 
   const { configuracoes, atualizarConfiguracoes } = useConfiguracoes();
 
+  useEffect(() => {
+    const meta = auth.user?.user_metadata;
+    const nomeGoogle = meta?.full_name || meta?.name;
+    if (nomeGoogle && (!configuracoes.nomeMotorista || configuracoes.nomeMotorista === 'Motorista')) {
+      atualizarConfiguracoes({ nomeMotorista: nomeGoogle });
+    }
+  }, [auth.user, configuracoes.nomeMotorista, atualizarConfiguracoes]);
+
   const handleIniciarJornada = (saldo) => {
     iniciarJornada(saldo);
   };

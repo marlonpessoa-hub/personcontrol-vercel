@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getNomeExibicao } from '../../utils/user';
 
 const Header = ({ user, onSignOut, isDarkTheme, onToggleTheme, onNavigate }) => {
   const [profilePhoto, setProfilePhoto] = useState(() => {
@@ -50,11 +51,11 @@ const Header = ({ user, onSignOut, isDarkTheme, onToggleTheme, onNavigate }) => 
               {profilePhoto ? (
                 <img src={profilePhoto} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
               ) : (
-                user.email?.charAt(0).toUpperCase() || 'U'
+                getNomeExibicao(user).charAt(0).toUpperCase() || 'U'
               )}
             </div>
             <span className="user-name" data-od-id="user-name" onClick={() => onNavigate('perfil')} style={{ cursor: 'pointer' }} role="button" tabIndex="0" onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('perfil'); } }}>
-              {user.email?.split('@')[0] || 'Usuário'}
+              {getNomeExibicao(user)}
             </span>
             <button 
               className="btn-icon" 
