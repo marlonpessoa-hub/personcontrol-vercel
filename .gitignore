@@ -1,0 +1,18 @@
+# Dependências
+node_modules/
+
+# Build
+dist/
+index.html.artifact.json
+
+# Variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
