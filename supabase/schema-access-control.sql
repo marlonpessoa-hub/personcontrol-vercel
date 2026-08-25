@@ -190,3 +190,25 @@ update public.user_access
        expira_em = now() + interval '36500 days',
        atualizado_em = now()
  where lower(email) = 'marlonfpessoa@gmail.com';
+
+-- ---------------------------------------------------------------------------
+-- 9) Leitura do próprio acesso independente de RLS (usada pelo app)
+-- ---------------------------------------------------------------------------
+create or replace function public.meu_acesso()
+returns table (
+  user_id   uuid,
+  email     text,
+  expira_em timestamptz,
+  is_admin  boolean
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select ua.user_id, ua.email, ua.expira_em, ua.is_admin
+    from public.user_access ua
+   where ua.user_id = auth.uid();
+$$;
+
+grant execute on function public.meu_acesso() to authenticated;

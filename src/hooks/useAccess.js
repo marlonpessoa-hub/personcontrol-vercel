@@ -17,6 +17,22 @@ const useAccess = (user) => {
   const [carregandoAcesso, setCarregandoAcesso] = useState(true);
   const [erroAcesso, setErroAcesso] = useState(null);
 
+  const buscarAcesso = useCallback(async () => {
+    // Preferir RPC security definer: leitura garantida, independente de RLS
+    const { data: rpcData, error: rpcError } = await supabase.rpc('meu_acesso');
+    if (!rpcError) {
+      return Array.isArray(rpcData) ? rpcData[0] ?? null : rpcData ?? null;
+    }
+    console.warn('meu_acesso indisponível, usando leitura direta:', rpcError.message);
+    const { data, error } = await supabase
+      .from('user_access')
+      .select('user_id, email, expira_em, is_admin')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }, [user?.id]);
+
   const carregarAcesso = useCallback(async () => {
     if (!user?.id) {
       setAcesso(null);
@@ -25,28 +41,19 @@ const useAccess = (user) => {
     }
     setCarregandoAcesso(true);
     try {
-      const buscarAcesso = () =>
-        supabase
-          .from('user_access')
-          .select('user_id, email, expira_em, is_admin')
-          .eq('user_id', user.id)
-          .maybeSingle();
+      let linha = await buscarAcesso();
 
-      let { data, error } = await buscarAcesso();
-      if (error) throw error;
-
-      if (!data) {
+      if (!linha) {
         const { error: erroTrial } = await supabase.rpc('garantir_acesso_trial');
         if (erroTrial) {
           console.warn('garantir_acesso_trial indisponível:', erroTrial.message);
         } else {
-          const refetch = await buscarAcesso();
-          if (!refetch.error) data = refetch.data;
+          linha = await buscarAcesso();
         }
       }
 
       setErroAcesso(null);
-      setAcesso(data || { user_id: user.id, email: user.email, expira_em: null, is_admin: false });
+      setAcesso(linha || { user_id: user.id, email: user.email, expira_em: null, is_admin: false });
     } catch (err) {
       console.error('Erro ao carregar acesso:', err);
       setErroAcesso(err.message);
@@ -54,7 +61,7 @@ const useAccess = (user) => {
     } finally {
       setCarregandoAcesso(false);
     }
-  }, [user?.id, user?.email]);
+  }, [user?.id, user?.email, buscarAcesso]);
 
   useEffect(() => {
     carregarAcesso();
