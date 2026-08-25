@@ -158,6 +158,7 @@ const App = () => {
         modo={access.erroAcesso ? 'erro' : 'expirado'}
         erro={access.erroAcesso}
         expiraEm={access.expiraEm}
+        detalheTecnico={JSON.stringify({ erro: access.erroAcesso, acesso: access.acesso }, null, 2)}
         onAtivar={access.ativarChave}
         onRecarregar={access.carregarAcesso}
         onSignOut={auth.signOut}

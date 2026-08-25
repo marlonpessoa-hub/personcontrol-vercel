@@ -14,7 +14,7 @@ export default [
       parserOptions: {
         ecmaFeatures: { jsx: true },
       },
-      globals: globals.browser,
+      globals: { ...globals.browser, __BUILD__: 'readonly' },
     },
     plugins: {
       'react-hooks': reactHooks,

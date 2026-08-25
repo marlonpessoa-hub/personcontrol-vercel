@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { formatarData, formatarHora } from '../../utils/formatters';
 
-const AccessScreen = ({ modo, erro, expiraEm, onAtivar, onRecarregar, onSignOut, isDarkTheme, onToggleTheme }) => {
+const AccessScreen = ({ modo, erro, expiraEm, detalheTecnico, onAtivar, onRecarregar, onSignOut, isDarkTheme, onToggleTheme }) => {
   const [chave, setChave] = useState('');
   const [loading, setLoading] = useState(false);
   const [msgErro, setMsgErro] = useState('');
@@ -120,6 +120,28 @@ const AccessScreen = ({ modo, erro, expiraEm, onAtivar, onRecarregar, onSignOut,
         >
           SAIR DA CONTA
         </button>
+      </div>
+
+      <div style={{ marginTop: 'var(--space-6)', textAlign: 'center', color: 'var(--meta)', fontSize: 'var(--text-xs)' }}>
+        Build {__BUILD__}
+        {detalheTecnico && (
+          <pre
+            style={{
+              textAlign: 'left',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-all',
+              marginTop: 'var(--space-2)',
+              padding: 'var(--space-3)',
+              borderRadius: '8px',
+              background: 'rgba(128, 128, 128, 0.12)',
+              maxHeight: '9em',
+              overflow: 'auto'
+            }}
+            data-od-id="access-detalhe-tecnico"
+          >
+            {detalheTecnico}
+          </pre>
+        )}
       </div>
     </div>
   );
