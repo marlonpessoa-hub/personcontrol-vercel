@@ -25,12 +25,26 @@ const useAccess = (user) => {
     }
     setCarregandoAcesso(true);
     try {
-      const { data, error } = await supabase
-        .from('user_access')
-        .select('user_id, email, expira_em, is_admin')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const buscarAcesso = () =>
+        supabase
+          .from('user_access')
+          .select('user_id, email, expira_em, is_admin')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      let { data, error } = await buscarAcesso();
       if (error) throw error;
+
+      if (!data) {
+        const { error: erroTrial } = await supabase.rpc('garantir_acesso_trial');
+        if (erroTrial) {
+          console.warn('garantir_acesso_trial indisponível:', erroTrial.message);
+        } else {
+          const refetch = await buscarAcesso();
+          if (!refetch.error) data = refetch.data;
+        }
+      }
+
       setErroAcesso(null);
       setAcesso(data || { user_id: user.id, email: user.email, expira_em: null, is_admin: false });
     } catch (err) {
