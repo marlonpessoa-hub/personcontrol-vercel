@@ -1,4 +1,4 @@
-import { formatarMoeda, formatarData, formatarHora, formatarDuracao } from '../../utils/formatters';
+import { formatarMoeda, formatarData, formatarHora, formatarDuracao, formatarNumero } from '../../utils/formatters';
 
 const DetalhesJornada = ({ jornada, onVoltar, onExcluir, onEditar }) => {
   if (!jornada) return null;
@@ -33,6 +33,28 @@ const DetalhesJornada = ({ jornada, onVoltar, onExcluir, onEditar }) => {
           <span className="detail-label">Duração</span>
           <span className="detail-value">{formatarDuracao(jornada.duracaoMinutos)}</span>
         </div>
+        {(jornada.kmInicial != null || jornada.kmFinal != null) && (
+          <>
+            {jornada.kmInicial != null && (
+              <div className="detail-row">
+                <span className="detail-label">KM Inicial</span>
+                <span className="detail-value">{formatarNumero(jornada.kmInicial)} km</span>
+              </div>
+            )}
+            {jornada.kmFinal != null && (
+              <div className="detail-row">
+                <span className="detail-label">KM Final</span>
+                <span className="detail-value">{formatarNumero(jornada.kmFinal)} km</span>
+              </div>
+            )}
+            {jornada.kmRodado > 0 && (
+              <div className="detail-row">
+                <span className="detail-label">KM Rodado</span>
+                <span className="detail-value accent">{formatarNumero(jornada.kmRodado)} km</span>
+              </div>
+            )}
+          </>
+        )}
         <div className="divider"></div>
         <div className="detail-row">
           <span className="detail-label">Saldo Inicial</span>

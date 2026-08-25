@@ -28,6 +28,8 @@ export const formatarDuracao = (minutos) => {
   return `${horas}h ${mins}min`;
 };
 
+export const formatarNumero = (valor) => new Intl.NumberFormat('pt-BR').format(valor);
+
 export const calcularDuracao = (inicio, fim) => {
   const diff = new Date(fim) - new Date(inicio);
   return Math.floor(diff / 60000);

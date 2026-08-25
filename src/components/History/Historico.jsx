@@ -1,4 +1,4 @@
-import { formatarMoeda, formatarData, formatarHora, formatarDuracao } from '../../utils/formatters';
+import { formatarMoeda, formatarData, formatarHora, formatarDuracao, formatarNumero } from '../../utils/formatters';
 
 const Historico = ({ jornadas, onVerDetalhes }) => {
   if (jornadas.length === 0) {
@@ -33,6 +33,7 @@ const Historico = ({ jornadas, onVerDetalhes }) => {
             <div className="journey-date">{formatarData(jornada.dataInicio)}</div>
             <div className="journey-duration">
               {formatarDuracao(jornada.duracaoMinutos)} • {formatarHora(jornada.dataInicio)} - {jornada.dataFim ? formatarHora(jornada.dataFim) : '--:--'}
+              {jornada.kmRodado > 0 && <> • {formatarNumero(jornada.kmRodado)} km</>}
             </div>
           </div>
           <div className="journey-amount">{formatarMoeda(jornada.totalGanho)}</div>

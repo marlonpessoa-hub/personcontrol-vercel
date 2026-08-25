@@ -65,12 +65,15 @@ const useJornada = (userId) => {
     }
   }, [jornadaAtiva, userId, loadedUserId]);
 
-  const iniciarJornada = useCallback((saldoInicial) => {
+  const iniciarJornada = useCallback((saldoInicial, kmInicial) => {
     const novaJornada = {
       id: crypto.randomUUID(),
       dataInicio: new Date().toISOString(),
       dataFim: null,
       saldoInicial: paraNumero(saldoInicial),
+      kmInicial: paraNumero(kmInicial),
+      kmFinal: null,
+      kmRodado: 0,
       valorApp: 0,
       valorDinheiro: 0,
       totalGanho: 0,
@@ -82,11 +85,13 @@ const useJornada = (userId) => {
     return novaJornada;
   }, []);
 
-  const encerrarJornada = useCallback((valorApp, valorDinheiro) => {
+  const encerrarJornada = useCallback((valorApp, valorDinheiro, kmFinal) => {
     if (!jornadaAtiva) return null;
 
     const app = paraNumero(valorApp);
     const dinheiro = paraNumero(valorDinheiro);
+    const kmFim = paraNumero(kmFinal);
+    const temKmInicial = typeof jornadaAtiva.kmInicial === 'number';
 
     const agora = new Date().toISOString();
     const duracao = calcularDuracao(jornadaAtiva.dataInicio, agora);
@@ -100,7 +105,9 @@ const useJornada = (userId) => {
       valorDinheiro: dinheiro,
       totalGanho,
       saldoFinal,
-      duracaoMinutos: duracao
+      duracaoMinutos: duracao,
+      kmFinal: temKmInicial ? kmFim : null,
+      kmRodado: temKmInicial ? Math.max(0, kmFim - jornadaAtiva.kmInicial) : 0
     };
 
     setJornadas(prev => [jornadaFinalizada, ...prev]);
@@ -121,12 +128,29 @@ const useJornada = (userId) => {
       const totalGanho = valorApp + valorDinheiro;
       const saldoFinal = jornada.saldoInicial + totalGanho;
 
+      const kmVazio = (v) => v === '' || v === null || v === undefined;
+      const kmInicial = kmVazio(dadosAtualizados.kmInicial)
+        ? jornada.kmInicial ?? null
+        : paraNumero(dadosAtualizados.kmInicial, jornada.kmInicial ?? null);
+      const kmFinal = kmVazio(dadosAtualizados.kmFinal)
+        ? jornada.kmFinal ?? null
+        : paraNumero(dadosAtualizados.kmFinal, jornada.kmFinal ?? null);
+
+      const temKmCompleto =
+        typeof kmInicial === 'number' && typeof kmFinal === 'number';
+      const kmRodado = temKmCompleto
+        ? Math.max(0, kmFinal - kmInicial)
+        : jornada.kmRodado ?? 0;
+
       return {
         ...jornada,
         valorApp,
         valorDinheiro,
         totalGanho,
         saldoFinal,
+        kmInicial,
+        kmFinal,
+        kmRodado,
         observacoes: dadosAtualizados.observacoes ?? jornada.observacoes,
         editadoEm: new Date().toISOString()
       };

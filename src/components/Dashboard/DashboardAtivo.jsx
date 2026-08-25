@@ -1,5 +1,5 @@
 import Cronometro from '../UI/Cronometro';
-import { formatarMoeda, formatarHora } from '../../utils/formatters';
+import { formatarMoeda, formatarHora, formatarNumero } from '../../utils/formatters';
 
 const DashboardAtivo = ({ jornadaAtiva, onEncerrar }) => (
   <div className="page page-animate" data-od-id="dashboard-ativo">
@@ -20,6 +20,12 @@ const DashboardAtivo = ({ jornadaAtiva, onEncerrar }) => (
         <div className="stat-label">INÍCIO</div>
         <div className="stat-value" data-od-id="stat-hora-inicio">
           {formatarHora(jornadaAtiva.dataInicio)}
+        </div>
+      </div>
+      <div className="stat-card card-animate">
+        <div className="stat-label">KM INICIAL</div>
+        <div className="stat-value" data-od-id="stat-km-inicial">
+          {jornadaAtiva.kmInicial != null ? `${formatarNumero(jornadaAtiva.kmInicial)} km` : '--'}
         </div>
       </div>
     </div>

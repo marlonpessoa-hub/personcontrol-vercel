@@ -1,19 +1,27 @@
 import { useState } from 'react';
 import Modal from './Modal';
-import { formatarMoeda, formatarHora, formatarDuracao, calcularDuracao } from '../../utils/formatters';
+import { formatarMoeda, formatarHora, formatarDuracao, calcularDuracao, formatarNumero } from '../../utils/formatters';
 
 const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
   const [valorApp, setValorApp] = useState('');
   const [valorDinheiro, setValorDinheiro] = useState('');
+  const [kmFinal, setKmFinal] = useState('');
 
   const totalGanho = (parseFloat(valorApp) || 0) + (parseFloat(valorDinheiro) || 0);
   const saldoFinal = jornadaAtiva ? jornadaAtiva.saldoInicial + totalGanho : 0;
   const duracao = jornadaAtiva ? calcularDuracao(jornadaAtiva.dataInicio, new Date()) : 0;
 
+  const kmInicial = typeof jornadaAtiva?.kmInicial === 'number' ? jornadaAtiva.kmInicial : null;
+  const kmFinalNum = parseFloat(kmFinal);
+  const kmValido = kmFinal !== '' && Number.isFinite(kmFinalNum) && (kmInicial === null || kmFinalNum >= kmInicial);
+  const kmRodadoPrevisto = kmValido && kmInicial !== null ? kmFinalNum - kmInicial : null;
+
   const handleConfirm = () => {
-    onConfirm(valorApp || '0', valorDinheiro || '0');
+    if (!kmValido) return;
+    onConfirm(valorApp || '0', valorDinheiro || '0', kmFinal);
     setValorApp('');
     setValorDinheiro('');
+    setKmFinal('');
     onClose();
   };
 
@@ -36,6 +44,12 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
           <span className="detail-label">Saldo Inicial</span>
           <span className="detail-value" data-od-id="detail-saldo">
             {jornadaAtiva ? formatarMoeda(jornadaAtiva.saldoInicial) : 'R$ 0,00'}
+          </span>
+        </div>
+        <div className="detail-row">
+          <span className="detail-label">KM Inicial</span>
+          <span className="detail-value" data-od-id="detail-km-inicial">
+            {kmInicial !== null ? `${formatarNumero(kmInicial)} km` : '--'}
           </span>
         </div>
       </div>
@@ -72,8 +86,37 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
         />
       </div>
 
+      <div className="form-group">
+        <label className="form-label" data-od-id="label-km-final">
+          KM Final do Odômetro
+        </label>
+        <input
+          type="number"
+          className="form-input"
+          value={kmFinal}
+          onChange={(e) => setKmFinal(e.target.value)}
+          placeholder="0"
+          step="1"
+          min={kmInicial !== null ? kmInicial : '0'}
+          data-od-id="input-km-final"
+        />
+        {!kmValido && kmFinal !== '' && (
+          <div className="form-hint" style={{ color: 'var(--danger, #ef4444)' }} data-od-id="hint-km-invalido">
+            O KM final deve ser maior ou igual ao inicial
+          </div>
+        )}
+      </div>
+
       <div className="divider"></div>
 
+      {kmRodadoPrevisto !== null && (
+        <div className="detail-row">
+          <span className="detail-label">KM Rodado</span>
+          <span className="detail-value accent" data-od-id="detail-km-rodado-previsto">
+            {formatarNumero(kmRodadoPrevisto)} km
+          </span>
+        </div>
+      )}
       <div className="detail-row">
         <span className="detail-label">Total Ganho</span>
         <span className="detail-value accent" data-od-id="detail-total-ganho">
@@ -87,9 +130,10 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
         </span>
       </div>
 
-      <button 
+      <button
         className="btn btn-primary btn-press"
         onClick={handleConfirm}
+        disabled={!kmValido}
         style={{ marginTop: 'var(--space-5)' }}
         data-od-id="btn-salvar-encerrar"
       >

@@ -61,12 +61,12 @@ const App = () => {
     }
   }, [auth.user, configuracoes.nomeMotorista, atualizarConfiguracoes]);
 
-  const handleIniciarJornada = (saldo) => {
-    iniciarJornada(saldo);
+  const handleIniciarJornada = (saldo, kmInicial) => {
+    iniciarJornada(saldo, kmInicial);
   };
 
-  const handleEncerrarJornada = (valorApp, valorDinheiro) => {
-    encerrarJornada(valorApp, valorDinheiro);
+  const handleEncerrarJornada = (valorApp, valorDinheiro, kmFinal) => {
+    encerrarJornada(valorApp, valorDinheiro, kmFinal);
     setPagina('dashboard');
   };
 
