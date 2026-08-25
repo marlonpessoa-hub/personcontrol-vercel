@@ -108,8 +108,7 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut }) => {
           <div className="profile-card-item">
             <span className="profile-card-label">Tipo de Conta</span>
             <span className="profile-card-value accent" data-od-id="profile-account-type">
-              {user?.id === 'demo-user-id' ? 'Modo Demo' : 
-               user?.app_metadata?.provider === 'google' ? 'Google' : 'E-mail'}
+              {user?.app_metadata?.provider === 'google' ? 'Google' : 'E-mail'}
             </span>
           </div>
           <div className="profile-card-item">

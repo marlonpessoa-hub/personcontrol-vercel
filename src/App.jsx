@@ -145,7 +145,6 @@ const App = () => {
         onLogin={auth.signIn}
         onRegister={() => setAuthScreen('register')}
         onGoogleLogin={auth.signInWithGoogle}
-        onDemoMode={auth.enterDemoMode}
         isDarkTheme={isDarkTheme}
         onToggleTheme={toggleTheme}
       />

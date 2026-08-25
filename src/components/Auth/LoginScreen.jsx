@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import GoogleIcon from '../UI/GoogleIcon';
 
-const LoginScreen = ({ onLogin, onRegister, onGoogleLogin, onDemoMode, isDarkTheme, onToggleTheme }) => {
+const LoginScreen = ({ onLogin, onRegister, onGoogleLogin, isDarkTheme, onToggleTheme }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -110,18 +110,6 @@ const LoginScreen = ({ onLogin, onRegister, onGoogleLogin, onDemoMode, isDarkThe
           </button>
         </form>
 
-        <div className="auth-divider">
-          <span>ou</span>
-        </div>
-
-        <button 
-          className="btn btn-ghost btn-press"
-          onClick={onDemoMode}
-          data-od-id="btn-demo-mode"
-        >
-          ENTRAR EM MODO DEMO
-        </button>
-        
         <div className="auth-footer">
           Não tem conta?{' '}
           <button onClick={onRegister} data-od-id="link-register" type="button" style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: 0, font: 'inherit' }}>

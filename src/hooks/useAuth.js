@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import supabase, { isSupabaseConfigured } from '../supabase';
 
 const ERRO_SEM_CONFIG =
-  'Supabase não configurado. Crie um arquivo .env com VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (veja .env.example) ou use o modo demo.';
+  'Supabase não configurado. Crie um arquivo .env com VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (veja .env.example).';
 
 const useAuth = () => {
   const [user, setUser] = useState(null);
@@ -93,13 +93,6 @@ const useAuth = () => {
     }
   };
 
-  const enterDemoMode = () => {
-    setUser({
-      id: 'demo-user-id',
-      email: 'demo@personcontrol.com'
-    });
-  };
-
   return {
     user,
     loading,
@@ -108,7 +101,6 @@ const useAuth = () => {
     signIn,
     signInWithGoogle,
     signOut,
-    enterDemoMode,
     isAuthenticated: !!user
   };
 };

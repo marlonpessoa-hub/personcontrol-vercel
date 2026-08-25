@@ -9,7 +9,7 @@ if (!isSupabaseConfigured) {
   console.warn(
     '[PersonControl] Supabase não configurado. ' +
     'Crie um arquivo .env com VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (veja .env.example). ' +
-    'O login real ficará indisponível até lá; use o modo demo.'
+    'O login ficará indisponível até lá.'
   );
 }
 
