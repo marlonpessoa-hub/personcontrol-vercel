@@ -35,6 +35,7 @@ const useAccess = (user) => {
 
   const carregarAcesso = useCallback(async () => {
     if (!user?.id) {
+      setErroAcesso('Sessão não identificada (usuário sem ID no momento da verificação).');
       setAcesso(null);
       setCarregandoAcesso(false);
       return;
