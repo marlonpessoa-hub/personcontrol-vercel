@@ -9,6 +9,9 @@ const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Só aceita usuários com ID válido; sessões parciais/corrompidas viram logout
+  const aplicarUsuario = (u) => setUser(u?.id ? u : null);
+
   useEffect(() => {
     if (!isSupabaseConfigured) {
       setLoading(false);
@@ -18,7 +21,7 @@ const useAuth = () => {
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        setUser(session?.user || null);
+        aplicarUsuario(session?.user || null);
       } catch (err) {
         console.error('Session check error:', err);
       } finally {
@@ -28,7 +31,7 @@ const useAuth = () => {
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
+      aplicarUsuario(session?.user || null);
     });
 
     return () => subscription.unsubscribe();
@@ -41,7 +44,7 @@ const useAuth = () => {
     try {
       const { data, error: supabaseError } = await supabase.auth.signUp({ email, password });
       if (supabaseError) throw supabaseError;
-      setUser(data.user);
+      aplicarUsuario(data.user);
       return { success: true };
     } catch (err) {
       setError(err.message);
@@ -58,7 +61,7 @@ const useAuth = () => {
     try {
       const { data, error: supabaseError } = await supabase.auth.signInWithPassword({ email, password });
       if (supabaseError) throw supabaseError;
-      setUser(data.user);
+      aplicarUsuario(data.user);
       return { success: true };
     } catch (err) {
       setError(err.message);

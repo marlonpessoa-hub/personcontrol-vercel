@@ -56,6 +56,7 @@ const App = () => {
 
   const { configuracoes, atualizarConfiguracoes } = useConfiguracoes();
   const access = useAccess(auth.user);
+  const autenticado = Boolean(auth.user?.id);
 
   useEffect(() => {
     if (pagina === 'admin' && !access.isAdmin) {
@@ -102,7 +103,7 @@ const App = () => {
 
   const ultimaJornada = jornadas.length > 0 ? jornadas[0] : null;
 
-  if (auth.loading || (auth.isAuthenticated && access.carregandoAcesso)) {
+  if (auth.loading || (autenticado && access.carregandoAcesso)) {
     return (
       <div className="auth-container" data-od-id="loading-screen">
         <button 
@@ -138,7 +139,7 @@ const App = () => {
     );
   }
 
-  if (!auth.isAuthenticated) {
+  if (!autenticado) {
     if (authScreen === 'register') {
     return (
       <RegisterScreen
