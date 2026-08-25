@@ -2,16 +2,19 @@ import { useState, useEffect } from 'react';
 import useAuth from './hooks/useAuth';
 import useJornada from './hooks/useJornada';
 import useConfiguracoes from './hooks/useConfiguracoes';
+import useAccess from './hooks/useAccess';
 import Header from './components/UI/Header';
 import Navigation from './components/UI/Navigation';
 import LoginScreen from './components/Auth/LoginScreen';
 import RegisterScreen from './components/Auth/RegisterScreen';
+import AccessScreen from './components/Auth/AccessScreen';
 import DashboardInativo from './components/Dashboard/DashboardInativo';
 import DashboardAtivo from './components/Dashboard/DashboardAtivo';
 import Historico from './components/History/Historico';
 import DetalhesJornada from './components/History/DetalhesJornada';
 import Configuracoes from './components/Settings/Configuracoes';
 import ProfileScreen from './components/Profile/ProfileScreen';
+import AdminChaves from './components/Admin/AdminChaves';
 import ModalIniciarJornada from './components/Modals/ModalIniciarJornada';
 import ModalEncerrarJornada from './components/Modals/ModalEncerrarJornada';
 import ModalEditarJornada from './components/Modals/ModalEditarJornada';
@@ -52,6 +55,13 @@ const App = () => {
   } = useJornada(auth.user?.id);
 
   const { configuracoes, atualizarConfiguracoes } = useConfiguracoes();
+  const access = useAccess(auth.user);
+
+  useEffect(() => {
+    if (pagina === 'admin' && !access.isAdmin) {
+      setPagina('dashboard');
+    }
+  }, [pagina, access.isAdmin]);
 
   useEffect(() => {
     const meta = auth.user?.user_metadata;
@@ -92,7 +102,7 @@ const App = () => {
 
   const ultimaJornada = jornadas.length > 0 ? jornadas[0] : null;
 
-  if (auth.loading) {
+  if (auth.loading || (auth.isAuthenticated && access.carregandoAcesso)) {
     return (
       <div className="auth-container" data-od-id="loading-screen">
         <button 
@@ -130,16 +140,32 @@ const App = () => {
 
   if (!auth.isAuthenticated) {
     if (authScreen === 'register') {
-      return (
-        <RegisterScreen 
-          onRegister={auth.signUp}
-          onLogin={() => setAuthScreen('login')}
-          onGoogleLogin={auth.signInWithGoogle}
-          isDarkTheme={isDarkTheme}
-          onToggleTheme={toggleTheme}
-        />
-      );
-    }
+    return (
+      <RegisterScreen
+        onRegister={auth.signUp}
+        onLogin={() => setAuthScreen('login')}
+        onGoogleLogin={auth.signInWithGoogle}
+        onAtivarChave={access.ativarChave}
+        isDarkTheme={isDarkTheme}
+        onToggleTheme={toggleTheme}
+      />
+    );
+  }
+
+  if (access.bloqueado) {
+    return (
+      <AccessScreen
+        modo={access.erroAcesso ? 'erro' : 'expirado'}
+        erro={access.erroAcesso}
+        expiraEm={access.expiraEm}
+        onAtivar={access.ativarChave}
+        onRecarregar={access.carregarAcesso}
+        onSignOut={auth.signOut}
+        isDarkTheme={isDarkTheme}
+        onToggleTheme={toggleTheme}
+      />
+    );
+  }
     return (
       <LoginScreen 
         onLogin={auth.signIn}
@@ -161,7 +187,7 @@ const App = () => {
         onToggleTheme={toggleTheme}
         onNavigate={setPagina}
       />
-      <Navigation pagina={pagina} setPagina={setPagina} />
+      <Navigation pagina={pagina} setPagina={setPagina} isAdmin={access.isAdmin} />
 
       {pagina === 'dashboard' && !jornadaAtiva && (
         <DashboardInativo 
@@ -192,6 +218,14 @@ const App = () => {
           onVoltar={() => setJornadaDetalhesId(null)}
           onExcluir={handleExcluirJornada}
           onEditar={handleEditarJornada}
+        />
+      )}
+
+      {pagina === 'admin' && access.isAdmin && (
+        <AdminChaves
+          criarChave={access.criarChave}
+          listarChaves={access.listarChaves}
+          excluirChave={access.excluirChave}
         />
       )}
 

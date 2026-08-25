@@ -1,26 +1,32 @@
 import { useState } from 'react';
 import GoogleIcon from '../UI/GoogleIcon';
 
-const RegisterScreen = ({ onRegister, onLogin, onGoogleLogin, isDarkTheme, onToggleTheme }) => {
+const RegisterScreen = ({ onRegister, onLogin, onGoogleLogin, onAtivarChave, isDarkTheme, onToggleTheme }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [chave, setChave] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (password !== confirmPassword) {
       setError('As senhas não coincidem');
       return;
     }
-    
+
     setLoading(true);
     const result = await onRegister(email, password);
     if (!result.success) {
       setError(result.error || 'Erro ao criar conta');
+      setLoading(false);
+      return;
+    }
+    if (chave.trim() && onAtivarChave) {
+      await onAtivarChave(chave.trim());
     }
     setLoading(false);
   };
@@ -119,7 +125,23 @@ const RegisterScreen = ({ onRegister, onLogin, onGoogleLogin, isDarkTheme, onTog
               data-od-id="input-register-confirm"
             />
           </div>
-          
+
+          <div className="form-group">
+            <label className="form-label">Chave de acesso (opcional)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={chave}
+              onChange={(e) => setChave(e.target.value.toUpperCase())}
+              placeholder="PC-XXXX-XXXX"
+              style={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}
+              data-od-id="input-register-chave"
+            />
+            <div className="form-hint" data-od-id="hint-register-chave">
+              Sem chave, você ganha 30 dias de teste grátis
+            </div>
+          </div>
+
           <button 
             type="submit" 
             className="btn btn-primary"
