@@ -5,3 +5,11 @@ export const getNomeConta = (user) => {
 
 export const getNomeExibicao = (user) =>
   getNomeConta(user) || user?.email?.split('@')[0] || 'Usuário';
+
+export const getFotoGoogle = (user) =>
+  user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+
+export const getFotoExibicao = (user, fotoSalva, fotoRemovida) => {
+  if (fotoSalva) return fotoSalva;
+  return fotoRemovida ? null : getFotoGoogle(user);
+};

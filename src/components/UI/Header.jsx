@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
-import { getNomeExibicao } from '../../utils/user';
+import { getNomeExibicao, getFotoExibicao } from '../../utils/user';
 
 const Header = ({ user, onSignOut, isDarkTheme, onToggleTheme, onNavigate }) => {
   const [profilePhoto, setProfilePhoto] = useState(() => {
-    return localStorage.getItem('personcontrol_profile_photo') || null;
+    return localStorage.getItem('personcontrol_profile_photo');
+  });
+  const [photoRemovida, setPhotoRemovida] = useState(() => {
+    return localStorage.getItem('personcontrol_photo_removida') === 'true';
   });
 
   useEffect(() => {
     const handleStorageChange = () => {
-      setProfilePhoto(localStorage.getItem('personcontrol_profile_photo') || null);
+      setProfilePhoto(localStorage.getItem('personcontrol_profile_photo'));
+      setPhotoRemovida(localStorage.getItem('personcontrol_photo_removida') === 'true');
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
+
+  const fotoExibicao = getFotoExibicao(user, profilePhoto, photoRemovida);
 
   return (
     <header className="header" data-od-id="header">
@@ -48,8 +54,8 @@ const Header = ({ user, onSignOut, isDarkTheme, onToggleTheme, onNavigate }) => 
         {user && (
           <>
             <div className="user-avatar" data-od-id="user-avatar" onClick={() => onNavigate('perfil')} style={{ cursor: 'pointer' }} role="button" tabIndex="0" onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('perfil'); } }}>
-              {profilePhoto ? (
-                <img src={profilePhoto} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+              {fotoExibicao ? (
+                <img src={fotoExibicao} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
               ) : (
                 getNomeExibicao(user).charAt(0).toUpperCase() || 'U'
               )}
