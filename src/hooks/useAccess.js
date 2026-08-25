@@ -46,14 +46,22 @@ const useAccess = (user) => {
       if (!linha) {
         const { error: erroTrial } = await supabase.rpc('garantir_acesso_trial');
         if (erroTrial) {
-          console.warn('garantir_acesso_trial indisponível:', erroTrial.message);
+          console.warn('PersonControl | garantir_acesso_trial indisponível:', erroTrial.message);
         } else {
           linha = await buscarAcesso();
         }
       }
 
+      if (!linha) {
+        setErroAcesso(
+          'Seu usuário não possui registro de acesso e o sistema não conseguiu criá-lo automaticamente. Clique em "Tentar novamente" ou contate o administrador.'
+        );
+        setAcesso(null);
+        return;
+      }
+
       setErroAcesso(null);
-      setAcesso(linha || { user_id: user.id, email: user.email, expira_em: null, is_admin: false });
+      setAcesso(linha);
     } catch (err) {
       console.error('Erro ao carregar acesso:', err);
       setErroAcesso(err.message);
