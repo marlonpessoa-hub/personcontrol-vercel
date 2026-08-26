@@ -161,10 +161,12 @@ const App = () => {
         expiraEm={access.expiraEm}
         detalheTecnico={JSON.stringify(
           {
+            build: __BUILD__,
             erro: access.erroAcesso,
             acesso: access.acesso,
             userId: auth.user?.id,
             email: auth.user?.email,
+            autenticadoFlag: auth.isAuthenticated,
             verificadoEm: new Date().toISOString()
           },
           null,
