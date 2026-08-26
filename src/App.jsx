@@ -141,12 +141,22 @@ const App = () => {
 
   if (!autenticado) {
     if (authScreen === 'register') {
+      return (
+        <RegisterScreen
+          onRegister={auth.signUp}
+          onLogin={() => setAuthScreen('login')}
+          onGoogleLogin={auth.signInWithGoogle}
+          onAtivarChave={access.ativarChave}
+          isDarkTheme={isDarkTheme}
+          onToggleTheme={toggleTheme}
+        />
+      );
+    }
     return (
-      <RegisterScreen
-        onRegister={auth.signUp}
-        onLogin={() => setAuthScreen('login')}
+      <LoginScreen
+        onLogin={auth.signIn}
+        onRegister={() => setAuthScreen('register')}
         onGoogleLogin={auth.signInWithGoogle}
-        onAtivarChave={access.ativarChave}
         isDarkTheme={isDarkTheme}
         onToggleTheme={toggleTheme}
       />
@@ -175,16 +185,6 @@ const App = () => {
         onAtivar={access.ativarChave}
         onRecarregar={access.carregarAcesso}
         onSignOut={auth.signOut}
-        isDarkTheme={isDarkTheme}
-        onToggleTheme={toggleTheme}
-      />
-    );
-  }
-    return (
-      <LoginScreen 
-        onLogin={auth.signIn}
-        onRegister={() => setAuthScreen('register')}
-        onGoogleLogin={auth.signInWithGoogle}
         isDarkTheme={isDarkTheme}
         onToggleTheme={toggleTheme}
       />
