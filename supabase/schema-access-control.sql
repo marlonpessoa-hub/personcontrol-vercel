@@ -14,13 +14,14 @@
 -- 1) Tabela de chaves de acesso
 -- ---------------------------------------------------------------------------
 create table if not exists public.access_keys (
-  id           uuid primary key default gen_random_uuid(),
-  codigo       text unique not null,
-  duracao_dias int not null check (duracao_dias in (30, 60, 90, 180, 365)),
-  criado_por   text,
-  criado_em    timestamptz not null default now(),
-  usado_por    uuid references auth.users (id),
-  usado_em     timestamptz
+  id               uuid primary key default gen_random_uuid(),
+  codigo           text unique not null,
+  duracao_dias     int not null check (duracao_dias in (30, 60, 90, 180, 365)),
+  criado_por       text,
+  criado_em        timestamptz not null default now(),
+  usado_por        uuid references auth.users (id),
+  usado_por_email  text,
+  usado_em         timestamptz
 );
 
 -- ---------------------------------------------------------------------------
@@ -108,8 +109,9 @@ begin
   end if;
 
   update public.access_keys
-     set usado_por = auth.uid(),
-         usado_em  = now()
+     set usado_por        = auth.uid(),
+         usado_por_email  = auth.email(),
+         usado_em         = now()
    where codigo = upper(btrim(p_codigo))
      and usado_por is null
    returning duracao_dias into v_duracao;

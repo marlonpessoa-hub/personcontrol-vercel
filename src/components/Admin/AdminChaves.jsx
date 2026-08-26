@@ -190,7 +190,7 @@ const AdminChaves = ({ criarChave, listarChaves, excluirChave }) => {
               <div className="journey-duration">
                 {rotuloDuracao(chave.duracao_dias)} •{' '}
                 {chave.usado_por
-                  ? `Usada em ${formatarData(chave.usado_em)} às ${formatarHora(chave.usado_em)}`
+                  ? `Usada por ${chave.usado_por_email || 'e-mail indisponível'} em ${formatarData(chave.usado_em)} às ${formatarHora(chave.usado_em)}`
                   : 'Disponível'}
               </div>
             </div>
