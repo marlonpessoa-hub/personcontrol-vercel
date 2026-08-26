@@ -44,14 +44,16 @@ const App = () => {
   const toggleTheme = () => setIsDarkTheme(prev => !prev);
 
   const auth = useAuth();
-  const { 
-    jornadas, 
-    jornadaAtiva, 
-    iniciarJornada, 
-    encerrarJornada, 
+  const {
+    jornadas,
+    jornadaAtiva,
+    iniciarJornada,
+    pausarJornada,
+    retomarJornada,
+    encerrarJornada,
     excluirJornada,
     editarJornada,
-    estatisticasMes 
+    estatisticasMes
   } = useJornada(auth.user?.id);
 
   const { configuracoes, atualizarConfiguracoes } = useConfiguracoes();
@@ -213,9 +215,12 @@ const App = () => {
       )}
 
       {pagina === 'dashboard' && jornadaAtiva && (
-        <DashboardAtivo 
+        <DashboardAtivo
           jornadaAtiva={jornadaAtiva}
           onEncerrar={() => setModalEncerrar(true)}
+          onTogglePausa={() =>
+            jornadaAtiva.pausada ? retomarJornada() : pausarJornada()
+          }
         />
       )}
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { calcularDuracao, paraNumero } from '../utils/formatters';
+import { calcularDuracao, calcularMinutosPausados, paraNumero } from '../utils/formatters';
 
 const useJornada = (userId) => {
   const [jornadas, setJornadas] = useState([]);
@@ -79,10 +79,36 @@ const useJornada = (userId) => {
       totalGanho: 0,
       saldoFinal: 0,
       duracaoMinutos: 0,
+      minutosPausados: 0,
+      pausada: false,
+      pausas: [],
       observacoes: ''
     };
     setJornadaAtiva(novaJornada);
     return novaJornada;
+  }, []);
+
+  const pausarJornada = useCallback(() => {
+    setJornadaAtiva(prev => {
+      if (!prev || prev.pausada) return prev;
+      return {
+        ...prev,
+        pausada: true,
+        pausas: [...(prev.pausas || []), { inicio: new Date().toISOString(), fim: null }]
+      };
+    });
+  }, []);
+
+  const retomarJornada = useCallback(() => {
+    setJornadaAtiva(prev => {
+      if (!prev || !prev.pausada) return prev;
+      const pausas = [...(prev.pausas || [])];
+      if (pausas.length > 0) {
+        const ultima = pausas[pausas.length - 1];
+        pausas[pausas.length - 1] = { ...ultima, fim: new Date().toISOString() };
+      }
+      return { ...prev, pausada: false, pausas };
+    });
   }, []);
 
   const encerrarJornada = useCallback((valorApp, valorDinheiro, kmFinal) => {
@@ -93,19 +119,34 @@ const useJornada = (userId) => {
     const kmFim = paraNumero(kmFinal);
     const temKmInicial = typeof jornadaAtiva.kmInicial === 'number';
 
-    const agora = new Date().toISOString();
-    const duracao = calcularDuracao(jornadaAtiva.dataInicio, agora);
+    const agora = new Date();
+    const agoraIso = agora.toISOString();
+
+    // Fecha pausa aberta, se houver
+    let pausas = [...(jornadaAtiva.pausas || [])];
+    if (pausas.length > 0 && !pausas[pausas.length - 1].fim) {
+      const ultima = pausas[pausas.length - 1];
+      pausas[pausas.length - 1] = { ...ultima, fim: agoraIso };
+    }
+
+    const duracaoBruta = calcularDuracao(jornadaAtiva.dataInicio, agoraIso);
+    const minutosPausados = calcularMinutosPausados({ pausas }, agora);
+    const duracaoLiquida = Math.max(0, duracaoBruta - minutosPausados);
+
     const totalGanho = app + dinheiro;
     const saldoFinal = jornadaAtiva.saldoInicial + totalGanho;
 
     const jornadaFinalizada = {
       ...jornadaAtiva,
-      dataFim: agora,
+      dataFim: agoraIso,
       valorApp: app,
       valorDinheiro: dinheiro,
       totalGanho,
       saldoFinal,
-      duracaoMinutos: duracao,
+      duracaoMinutos: duracaoLiquida,
+      minutosPausados,
+      pausada: false,
+      pausas,
       kmFinal: temKmInicial ? kmFim : null,
       kmRodado: temKmInicial ? Math.max(0, kmFim - jornadaAtiva.kmInicial) : 0
     };
@@ -181,6 +222,8 @@ const useJornada = (userId) => {
     jornadas,
     jornadaAtiva,
     iniciarJornada,
+    pausarJornada,
+    retomarJornada,
     encerrarJornada,
     excluirJornada,
     editarJornada,

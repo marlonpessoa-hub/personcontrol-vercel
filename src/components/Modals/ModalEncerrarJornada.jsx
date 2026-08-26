@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal';
-import { formatarMoeda, formatarHora, formatarDuracao, calcularDuracao, formatarNumero } from '../../utils/formatters';
+import { formatarMoeda, formatarHora, formatarDuracao, calcularDuracao, calcularMinutosPausados, formatarNumero } from '../../utils/formatters';
 
 const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
   const [valorApp, setValorApp] = useState('');
@@ -9,7 +9,11 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
 
   const totalGanho = (parseFloat(valorApp) || 0) + (parseFloat(valorDinheiro) || 0);
   const saldoFinal = jornadaAtiva ? jornadaAtiva.saldoInicial + totalGanho : 0;
-  const duracao = jornadaAtiva ? calcularDuracao(jornadaAtiva.dataInicio, new Date()) : 0;
+
+  const agora = new Date();
+  const duracaoBruta = jornadaAtiva ? calcularDuracao(jornadaAtiva.dataInicio, agora) : 0;
+  const minutosPausados = jornadaAtiva ? calcularMinutosPausados(jornadaAtiva, agora) : 0;
+  const duracao = Math.max(0, duracaoBruta - minutosPausados);
 
   const kmInicial = typeof jornadaAtiva?.kmInicial === 'number' ? jornadaAtiva.kmInicial : null;
   const kmFinalNum = parseFloat(kmFinal);
@@ -34,6 +38,14 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
             {formatarDuracao(duracao)}
           </span>
         </div>
+        {minutosPausados > 0 && (
+          <div className="detail-row">
+            <span className="detail-label">Tempo em Pausa</span>
+            <span className="detail-value" data-od-id="detail-tempo-pausa">
+              {formatarDuracao(minutosPausados)}
+            </span>
+          </div>
+        )}
         <div className="detail-row">
           <span className="detail-label">Início</span>
           <span className="detail-value" data-od-id="detail-inicio">

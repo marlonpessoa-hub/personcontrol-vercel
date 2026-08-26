@@ -30,6 +30,14 @@ export const formatarDuracao = (minutos) => {
 
 export const formatarNumero = (valor) => new Intl.NumberFormat('pt-BR').format(valor);
 
+export const calcularMinutosPausados = (jornada, ateAgora = new Date()) => {
+  if (!jornada?.pausas?.length) return 0;
+  return jornada.pausas.reduce((acc, p) => {
+    const fim = p.fim ? new Date(p.fim) : ateAgora;
+    return acc + Math.max(0, Math.floor((fim - new Date(p.inicio)) / 60000));
+  }, 0);
+};
+
 export const calcularDuracao = (inicio, fim) => {
   const diff = new Date(fim) - new Date(inicio);
   return Math.floor(diff / 60000);

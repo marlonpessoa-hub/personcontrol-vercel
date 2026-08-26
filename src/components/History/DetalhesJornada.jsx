@@ -33,6 +33,14 @@ const DetalhesJornada = ({ jornada, onVoltar, onExcluir, onEditar }) => {
           <span className="detail-label">Duração</span>
           <span className="detail-value">{formatarDuracao(jornada.duracaoMinutos)}</span>
         </div>
+        {jornada.minutosPausados > 0 && (
+          <div className="detail-row">
+            <span className="detail-label">Tempo em Pausa</span>
+            <span className="detail-value" style={{ color: '#f59e0b' }}>
+              {formatarDuracao(jornada.minutosPausados)}
+            </span>
+          </div>
+        )}
         {(jornada.kmInicial != null || jornada.kmFinal != null) && (
           <>
             {jornada.kmInicial != null && (
