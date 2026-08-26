@@ -49,6 +49,7 @@ const App = () => {
   const {
     jornadas,
     jornadaAtiva,
+    carregando: carregandoJornadas,
     iniciarJornada,
     pausarJornada,
     retomarJornada,
@@ -109,7 +110,7 @@ const App = () => {
 
   const ultimaJornada = jornadas.length > 0 ? jornadas[0] : null;
 
-  if (auth.loading || (autenticado && access.carregandoAcesso)) {
+  if (auth.loading || (autenticado && access.carregandoAcesso) || (autenticado && carregandoJornadas)) {
     return (
       <div className="auth-container" data-od-id="loading-screen">
         <button 

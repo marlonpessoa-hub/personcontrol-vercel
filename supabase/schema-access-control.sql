@@ -214,3 +214,70 @@ as $$
 $$;
 
 grant execute on function public.meu_acesso() to authenticated;
+
+-- ============================================================================
+-- 10) Tabela de jornadas (dados financeiros e operacionais do motorista)
+-- ============================================================================
+create table if not exists public.jornadas (
+  id               uuid primary key default gen_random_uuid(),
+  user_id          uuid not null references auth.users (id) on delete cascade,
+  data_inicio      timestamptz not null,
+  data_fim         timestamptz,
+  saldo_inicial    numeric(12,2) not null default 0,
+  km_inicial       numeric(10,2),
+  km_final         numeric(10,2),
+  km_rodado        numeric(10,2) default 0,
+  valor_app        numeric(12,2) default 0,
+  valor_dinheiro   numeric(12,2) default 0,
+  total_ganho      numeric(12,2) default 0,
+  total_gastos     numeric(12,2) default 0,
+  lucro_liquido    numeric(12,2),
+  saldo_final      numeric(12,2),
+  duracao_minutos  int default 0,
+  minutos_pausados int default 0,
+  pausada          boolean default false,
+  pausas           jsonb default '[]'::jsonb,
+  gastos           jsonb default '[]'::jsonb,
+  total_gastos     numeric(12,2) default 0,
+  lucro_liquido    numeric(12,2) default 0,
+  observacoes      text,
+  editado_em       timestamptz,
+  criado_em        timestamptz not null default now(),
+  atualizado_em    timestamptz not null default now()
+);
+
+-- Índices
+create index if not exists idx_jornadas_user_data_inicio on public.jornadas (user_id, data_inicio desc);
+create index if not exists idx_jornadas_user_data_fim on public.jornadas (user_id, data_fim);
+
+-- RLS
+alter table public.jornadas enable row level security;
+
+create policy "usuario ve suas jornadas" on public.jornadas
+  for select using (auth.uid() = user_id);
+
+create policy "usuario insere suas jornadas" on public.jornadas
+  for insert with check (auth.uid() = user_id);
+
+create policy "usuario atualiza suas jornadas" on public.jornadas
+  for update using (auth.uid() = user_id);
+
+create policy "usuario remove suas jornadas" on public.jornadas
+  for delete using (auth.uid() = user_id);
+
+-- Trigger para atualizar atualizado_em automaticamente
+create or replace function public.atualizar_jornada_atualizado_em()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  new.atualizado_em = now();
+  return new;
+end $$;
+
+drop trigger if exists trigger_jornadas_atualizado_em on public.jornadas;
+create trigger trigger_jornadas_atualizado_em
+  before update on public.jornadas
+  for each row execute function public.atualizar_jornada_atualizado_em();
