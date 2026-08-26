@@ -251,11 +251,14 @@ const App = () => {
       )}
 
       {pagina === 'perfil' && (
-        <ProfileScreen 
+        <ProfileScreen
           user={auth.user}
           configuracoes={configuracoes}
           jornadas={jornadas}
           onSignOut={auth.signOut}
+          onAtivarChave={access.ativarChave}
+          expiraEm={access.expiraEm}
+          diasRestantes={access.diasRestantes}
         />
       )}
 

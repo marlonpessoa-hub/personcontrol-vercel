@@ -1,10 +1,13 @@
 import { useState, useRef, useMemo } from 'react';
 import PhotoModal from './PhotoModal';
-import { formatarMoeda, formatarData } from '../../utils/formatters';
+import { formatarMoeda, formatarData, formatarHora } from '../../utils/formatters';
 import { getNomeConta, getFotoGoogle, getFotoExibicao } from '../../utils/user';
 
-const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut }) => {
+const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave, expiraEm, diasRestantes }) => {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [chave, setChave] = useState('');
+  const [ativando, setAtivando] = useState(false);
+  const [msgChave, setMsgChave] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(() => {
     return localStorage.getItem('personcontrol_profile_photo');
   });
@@ -56,6 +59,26 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut }) => {
     localStorage.removeItem('personcontrol_profile_photo');
     localStorage.setItem('personcontrol_photo_removida', 'true');
     setShowPhotoModal(false);
+  };
+
+  const handleAtivarChave = async () => {
+    if (!chave.trim() || !onAtivarChave) return;
+    setMsgChave(null);
+    setAtivando(true);
+    try {
+      const result = await onAtivarChave(chave);
+      if (result.success) {
+        setMsgChave({
+          tipo: 'sucesso',
+          texto: `Chave ativada! Acesso até ${formatarData(result.expiraEm)} às ${formatarHora(result.expiraEm)}.`
+        });
+        setChave('');
+      } else {
+        setMsgChave({ tipo: 'erro', texto: result.error || 'Erro ao ativar a chave.' });
+      }
+    } finally {
+      setAtivando(false);
+    }
   };
 
   const getInitials = () => {
@@ -130,6 +153,65 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut }) => {
             </span>
           </div>
         </div>
+      </div>
+
+      <div className="profile-section card-animate" data-od-id="profile-acesso-section">
+        <div className="profile-section-title">Acesso</div>
+        <div className="profile-card">
+          <div className="profile-card-item">
+            <span className="profile-card-label">Vencimento</span>
+            <span className="profile-card-value accent" data-od-id="profile-vencimento">
+              {expiraEm
+                ? `${formatarData(expiraEm)}${diasRestantes != null ? ` (${diasRestantes} ${diasRestantes === 1 ? 'dia' : 'dias'})` : ''}`
+                : '--'}
+            </span>
+          </div>
+          {msgChave && (
+            <div
+              style={{
+                marginTop: 'var(--space-2)',
+                padding: 'var(--space-2) var(--space-3)',
+                borderRadius: '8px',
+                fontSize: 'var(--text-sm)',
+                background: msgChave.tipo === 'erro' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                color: msgChave.tipo === 'erro' ? '#ef4444' : '#22c55e'
+              }}
+              data-od-id={msgChave.tipo === 'erro' ? 'profile-chave-erro' : 'profile-chave-sucesso'}
+            >
+              {msgChave.texto}
+            </div>
+          )}
+        </div>
+
+        {onAtivarChave && (
+          <div className="form-group" style={{ marginTop: 'var(--space-4)' }}>
+            <label className="form-label" htmlFor="perfil-chave">Ativar nova chave</label>
+            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+              <input
+                id="perfil-chave"
+                type="text"
+                className="form-input"
+                value={chave}
+                onChange={(e) => setChave(e.target.value.toUpperCase())}
+                placeholder="PC-XXXX-XXXX"
+                style={{ textTransform: 'uppercase', letterSpacing: '0.08em', flex: 1 }}
+                data-od-id="input-perfil-chave"
+              />
+              <button
+                className="btn btn-primary btn-press"
+                onClick={handleAtivarChave}
+                disabled={ativando || !chave.trim()}
+                style={{ width: 'auto', whiteSpace: 'nowrap' }}
+                data-od-id="btn-ativar-chave-perfil"
+              >
+                {ativando ? 'ATIVANDO...' : 'ATIVAR'}
+              </button>
+            </div>
+            <div className="form-hint" data-od-id="hint-perfil-chave">
+              Os dias da nova chave são somados ao tempo restante do seu acesso
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="profile-section card-animate" data-od-id="profile-stats-section">
