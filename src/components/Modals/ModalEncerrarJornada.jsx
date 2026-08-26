@@ -136,6 +136,22 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
         </span>
       </div>
       <div className="detail-row">
+        <span className="detail-label">Gastos</span>
+        <span
+          className="detail-value"
+          style={{ color: (jornadaAtiva?.totalGastos || 0) > 0 ? '#ef4444' : undefined }}
+          data-od-id="detail-gastos"
+        >
+          {formatarMoeda(jornadaAtiva?.totalGastos || 0)}
+        </span>
+      </div>
+      <div className="detail-row">
+        <span className="detail-label">Lucro Líquido</span>
+        <span className="detail-value accent" data-od-id="detail-lucro-liquido">
+          {formatarMoeda(totalGanho - (jornadaAtiva?.totalGastos || 0))}
+        </span>
+      </div>
+      <div className="detail-row">
         <span className="detail-label">Saldo Final</span>
         <span className="detail-value accent" data-od-id="detail-saldo-final">
           {formatarMoeda(saldoFinal)}

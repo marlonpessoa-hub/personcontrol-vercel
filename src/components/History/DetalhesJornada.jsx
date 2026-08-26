@@ -81,6 +81,30 @@ const DetalhesJornada = ({ jornada, onVoltar, onExcluir, onEditar }) => {
           <span className="detail-label">Total Ganho</span>
           <span className="detail-value accent">{formatarMoeda(jornada.totalGanho)}</span>
         </div>
+        {jornada.totalGastos > 0 && (
+          <>
+            {(jornada.gastos || []).map((gasto) => (
+              <div className="detail-row" key={gasto.id}>
+                <span className="detail-label">{gasto.descricao}</span>
+                <span className="detail-value" style={{ color: '#ef4444' }}>
+                  −{formatarMoeda(gasto.valor)}
+                </span>
+              </div>
+            ))}
+            <div className="detail-row">
+              <span className="detail-label">Total de Gastos</span>
+              <span className="detail-value" style={{ color: '#ef4444' }}>
+                {formatarMoeda(jornada.totalGastos)}
+              </span>
+            </div>
+          </>
+        )}
+        {jornada.lucroLiquido != null && (
+          <div className="detail-row">
+            <span className="detail-label">Lucro Líquido</span>
+            <span className="detail-value accent">{formatarMoeda(jornada.lucroLiquido)}</span>
+          </div>
+        )}
         <div className="detail-row">
           <span className="detail-label">Saldo Final</span>
           <span className="detail-value accent">{formatarMoeda(jornada.saldoFinal)}</span>

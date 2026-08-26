@@ -82,10 +82,38 @@ const useJornada = (userId) => {
       minutosPausados: 0,
       pausada: false,
       pausas: [],
+      gastos: [],
+      totalGastos: 0,
+      lucroLiquido: 0,
       observacoes: ''
     };
     setJornadaAtiva(novaJornada);
     return novaJornada;
+  }, []);
+
+  const adicionarGasto = useCallback((descricao, valor) => {
+    const v = paraNumero(valor);
+    if (!jornadaAtiva || v <= 0) return null;
+    const gasto = {
+      id: crypto.randomUUID(),
+      descricao: (descricao || '').trim() || 'Gasto avulso',
+      valor: v,
+      criadoEm: new Date().toISOString()
+    };
+    setJornadaAtiva(prev => prev ? {
+      ...prev,
+      gastos: [...(prev.gastos || []), gasto],
+      totalGastos: (prev.totalGastos || 0) + v
+    } : prev);
+    return gasto;
+  }, [jornadaAtiva]);
+
+  const removerGasto = useCallback((id) => {
+    setJornadaAtiva(prev => {
+      if (!prev) return prev;
+      const gastos = (prev.gastos || []).filter(g => g.id !== id);
+      return { ...prev, gastos, totalGastos: gastos.reduce((acc, g) => acc + g.valor, 0) };
+    });
   }, []);
 
   const pausarJornada = useCallback(() => {
@@ -135,6 +163,7 @@ const useJornada = (userId) => {
 
     const totalGanho = app + dinheiro;
     const saldoFinal = jornadaAtiva.saldoInicial + totalGanho;
+    const totalGastos = jornadaAtiva.totalGastos || 0;
 
     const jornadaFinalizada = {
       ...jornadaAtiva,
@@ -143,6 +172,9 @@ const useJornada = (userId) => {
       valorDinheiro: dinheiro,
       totalGanho,
       saldoFinal,
+      gastos: jornadaAtiva.gastos || [],
+      totalGastos,
+      lucroLiquido: totalGanho - totalGastos,
       duracaoMinutos: duracaoLiquida,
       minutosPausados,
       pausada: false,
@@ -189,6 +221,7 @@ const useJornada = (userId) => {
         valorDinheiro,
         totalGanho,
         saldoFinal,
+        lucroLiquido: totalGanho - (jornada.totalGastos || 0),
         kmInicial,
         kmFinal,
         kmRodado,
@@ -224,6 +257,8 @@ const useJornada = (userId) => {
     iniciarJornada,
     pausarJornada,
     retomarJornada,
+    adicionarGasto,
+    removerGasto,
     encerrarJornada,
     excluirJornada,
     editarJornada,

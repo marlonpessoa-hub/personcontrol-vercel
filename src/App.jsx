@@ -18,11 +18,13 @@ import AdminChaves from './components/Admin/AdminChaves';
 import ModalIniciarJornada from './components/Modals/ModalIniciarJornada';
 import ModalEncerrarJornada from './components/Modals/ModalEncerrarJornada';
 import ModalEditarJornada from './components/Modals/ModalEditarJornada';
+import ModalGasto from './components/Modals/ModalGasto';
 
 const App = () => {
   const [pagina, setPagina] = useState('dashboard');
   const [modalIniciar, setModalIniciar] = useState(false);
   const [modalEncerrar, setModalEncerrar] = useState(false);
+  const [modalGasto, setModalGasto] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
   const [jornadaDetalhesId, setJornadaDetalhesId] = useState(null);
   const [jornadaEditar, setJornadaEditar] = useState(null);
@@ -50,6 +52,8 @@ const App = () => {
     iniciarJornada,
     pausarJornada,
     retomarJornada,
+    adicionarGasto,
+    removerGasto,
     encerrarJornada,
     excluirJornada,
     editarJornada,
@@ -221,6 +225,8 @@ const App = () => {
           onTogglePausa={() =>
             jornadaAtiva.pausada ? retomarJornada() : pausarJornada()
           }
+          onAddGasto={() => setModalGasto(true)}
+          onRemoveGasto={removerGasto}
         />
       )}
 
@@ -267,7 +273,13 @@ const App = () => {
         />
       )}
 
-      <ModalIniciarJornada 
+      <ModalGasto
+        isOpen={modalGasto}
+        onClose={() => setModalGasto(false)}
+        onConfirm={adicionarGasto}
+      />
+
+      <ModalIniciarJornada
         isOpen={modalIniciar}
         onClose={() => setModalIniciar(false)}
         onConfirm={handleIniciarJornada}
