@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
 import PhotoModal from './PhotoModal';
 import { formatarMoeda, formatarData, formatarHora } from '../../utils/formatters';
-import { getNomeConta, getFotoGoogle, getFotoExibicao } from '../../utils/user';
+import { getNomeConta, getFotoGoogle, getFotoExibicao, chaveFotoPerfil, chaveFotoRemovida } from '../../utils/user';
 
 const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave, expiraEm, diasRestantes }) => {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -9,10 +9,10 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave
   const [ativando, setAtivando] = useState(false);
   const [msgChave, setMsgChave] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(() => {
-    return localStorage.getItem('personcontrol_profile_photo');
+    return user?.id ? localStorage.getItem(chaveFotoPerfil(user.id)) : null;
   });
   const [photoRemovida, setPhotoRemovida] = useState(() => {
-    return localStorage.getItem('personcontrol_photo_removida') === 'true';
+    return user?.id ? localStorage.getItem(chaveFotoRemovida(user.id)) === 'true' : false;
   });
 
   const fileInputRef = useRef(null);
@@ -25,8 +25,10 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave
       reader.onload = (event) => {
         const photoUrl = event.target.result;
         setProfilePhoto(photoUrl);
-        localStorage.setItem('personcontrol_profile_photo', photoUrl);
-        localStorage.removeItem('personcontrol_photo_removida');
+        if (user?.id) {
+          localStorage.setItem(chaveFotoPerfil(user.id), photoUrl);
+          localStorage.removeItem(chaveFotoRemovida(user.id));
+        }
         setPhotoRemovida(false);
       };
       reader.readAsDataURL(file);
@@ -44,10 +46,10 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave
 
   const handleUseGooglePhoto = () => {
     const googleFoto = getFotoGoogle(user);
-    if (googleFoto) {
+    if (googleFoto && user?.id) {
       setProfilePhoto(googleFoto);
-      localStorage.setItem('personcontrol_profile_photo', googleFoto);
-      localStorage.removeItem('personcontrol_photo_removida');
+      localStorage.setItem(chaveFotoPerfil(user.id), googleFoto);
+      localStorage.removeItem(chaveFotoRemovida(user.id));
       setPhotoRemovida(false);
     }
     setShowPhotoModal(false);
@@ -56,8 +58,10 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave
   const removePhoto = () => {
     setProfilePhoto(null);
     setPhotoRemovida(true);
-    localStorage.removeItem('personcontrol_profile_photo');
-    localStorage.setItem('personcontrol_photo_removida', 'true');
+    if (user?.id) {
+      localStorage.removeItem(chaveFotoPerfil(user.id));
+      localStorage.setItem(chaveFotoRemovida(user.id), 'true');
+    }
     setShowPhotoModal(false);
   };
 

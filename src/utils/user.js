@@ -13,3 +13,7 @@ export const getFotoExibicao = (user, fotoSalva, fotoRemovida) => {
   if (fotoSalva) return fotoSalva;
   return fotoRemovida ? null : getFotoGoogle(user);
 };
+
+export const chaveFotoPerfil = (userId) => `personcontrol_profile_photo:${userId}`;
+
+export const chaveFotoRemovida = (userId) => `personcontrol_photo_removida:${userId}`;

@@ -1,22 +1,21 @@
 import { useState, useEffect } from 'react';
-import { getNomeExibicao, getFotoExibicao } from '../../utils/user';
+import { getNomeExibicao, getFotoExibicao, chaveFotoPerfil, chaveFotoRemovida } from '../../utils/user';
 
 const Header = ({ user, onSignOut, isDarkTheme, onToggleTheme, onNavigate }) => {
-  const [profilePhoto, setProfilePhoto] = useState(() => {
-    return localStorage.getItem('personcontrol_profile_photo');
-  });
-  const [photoRemovida, setPhotoRemovida] = useState(() => {
-    return localStorage.getItem('personcontrol_photo_removida') === 'true';
-  });
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [photoRemovida, setPhotoRemovida] = useState(false);
+  const userId = user?.id;
 
+  // Chaves por usuário + ressincronização ao trocar de conta
   useEffect(() => {
-    const handleStorageChange = () => {
-      setProfilePhoto(localStorage.getItem('personcontrol_profile_photo'));
-      setPhotoRemovida(localStorage.getItem('personcontrol_photo_removida') === 'true');
+    const sincronizar = () => {
+      setProfilePhoto(userId ? localStorage.getItem(chaveFotoPerfil(userId)) : null);
+      setPhotoRemovida(userId ? localStorage.getItem(chaveFotoRemovida(userId)) === 'true' : false);
     };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    sincronizar();
+    window.addEventListener('storage', sincronizar);
+    return () => window.removeEventListener('storage', sincronizar);
+  }, [userId]);
 
   const fotoExibicao = getFotoExibicao(user, profilePhoto, photoRemovida);
 
