@@ -87,7 +87,7 @@ const useJornada = (userId) => {
   const [jornadaAtiva, setJornadaAtiva] = useState(null);
   const [carregando, setCarregando] = useState(true);
 
-  const usarSupabase = isSupabaseConfigured() && !!userId;
+  const usarSupabase = isSupabaseConfigured && !!userId;
 
   // ── Carregar dados ──
   useEffect(() => {
