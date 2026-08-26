@@ -238,8 +238,6 @@ create table if not exists public.jornadas (
   pausada          boolean default false,
   pausas           jsonb default '[]'::jsonb,
   gastos           jsonb default '[]'::jsonb,
-  total_gastos     numeric(12,2) default 0,
-  lucro_liquido    numeric(12,2) default 0,
   observacoes      text,
   editado_em       timestamptz,
   criado_em        timestamptz not null default now(),
