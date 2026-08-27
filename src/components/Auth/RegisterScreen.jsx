@@ -59,9 +59,8 @@ const RegisterScreen = ({ onRegister, onLogin, onGoogleLogin, onAtivarChave, isD
         )}
       </button>
       <div className="auth-logo scale-in" data-od-id="register-logo">
-        <img src="/logo.png" alt="PersonControl" style={{ height: '72px', width: 'auto' }} />
+        <img src="/logo.png" alt="PersonControl" style={{ height: '120px', width: 'auto' }} />
       </div>
-      <div className="auth-subtitle fadeSlideIn">Seu copiloto diário</div>
       
       <div className="auth-card scale-in">
         <h1 className="auth-title">Criar Conta</h1>

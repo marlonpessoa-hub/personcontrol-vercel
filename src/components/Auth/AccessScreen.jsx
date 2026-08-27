@@ -46,9 +46,9 @@ const AccessScreen = ({ modo, erro, expiraEm, detalheTecnico, onAtivar, onRecarr
       </button>
 
       <div className="auth-logo scale-in" data-od-id="access-logo">
-        <img src="/logo.png" alt="PersonControl" style={{ height: '72px', width: 'auto' }} />
+        <img src="/logo.png" alt="PersonControl" style={{ height: '120px', width: 'auto' }} />
       </div>
-
+      
       <div className="auth-card scale-in" style={{ maxWidth: '26rem', margin: '0 auto' }}>
         <h1 className="auth-title" data-od-id="access-title">
           {modo === 'erro' ? 'Verificação indisponível' : expiraEm ? 'Acesso expirado' : 'Ativação necessária'}

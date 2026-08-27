@@ -47,9 +47,8 @@ const LoginScreen = ({ onLogin, onRegister, onGoogleLogin, isDarkTheme, onToggle
         )}
       </button>
       <div className="auth-logo scale-in" data-od-id="login-logo">
-        <img src="/logo.png" alt="PersonControl" style={{ height: '72px', width: 'auto' }} />
+        <img src="/logo.png" alt="PersonControl" style={{ height: '120px', width: 'auto' }} />
       </div>
-      <div className="auth-subtitle fadeSlideIn">Seu copiloto diário</div>
       
       <div className="auth-card scale-in">
         <h1 className="auth-title">Entrar</h1>

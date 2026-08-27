@@ -139,9 +139,8 @@ const App = () => {
           )}
         </button>
         <div className="auth-logo">
-          <img src="/logo.png" alt="PersonControl" style={{ height: '72px', width: 'auto' }} />
+          <img src="/logo.png" alt="PersonControl" style={{ height: '120px', width: 'auto' }} />
         </div>
-        <div className="auth-subtitle">Carregando...</div>
       </div>
     );
   }
