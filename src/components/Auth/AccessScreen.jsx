@@ -46,7 +46,7 @@ const AccessScreen = ({ modo, erro, expiraEm, detalheTecnico, onAtivar, onRecarr
       </button>
 
       <div className="auth-logo scale-in" data-od-id="access-logo">
-        Person<span>Control</span>
+        <img src="/logo.png" alt="PersonControl" style={{ height: '72px', width: 'auto' }} />
       </div>
 
       <div className="auth-card scale-in" style={{ maxWidth: '26rem', margin: '0 auto' }}>

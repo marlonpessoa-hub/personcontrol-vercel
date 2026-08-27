@@ -22,7 +22,7 @@ const Header = ({ user, onSignOut, isDarkTheme, onToggleTheme, onNavigate }) => 
   return (
     <header className="header" data-od-id="header">
       <div className="logo" data-od-id="logo">
-        Person<span>Control</span>
+        <img src="/logo.png" alt="PersonControl" style={{ height: '36px', width: 'auto' }} />
       </div>
       <div className="user-menu">
         <button 
