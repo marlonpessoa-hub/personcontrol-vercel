@@ -139,7 +139,7 @@ const App = () => {
           )}
         </button>
         <div className="auth-logo">
-          <img src="/logo.png" alt="PersonControl" style={{ height: '120px', width: 'auto' }} />
+          <img src="/logo.png" alt="PersonControl" style={{ height: '160px', width: 'auto' }} />
         </div>
       </div>
     );

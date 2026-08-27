@@ -47,7 +47,7 @@ const LoginScreen = ({ onLogin, onRegister, onGoogleLogin, isDarkTheme, onToggle
         )}
       </button>
       <div className="auth-logo scale-in" data-od-id="login-logo">
-        <img src="/logo.png" alt="PersonControl" style={{ height: '120px', width: 'auto' }} />
+        <img src="/logo.png" alt="PersonControl" style={{ height: '160px', width: 'auto' }} />
       </div>
       
       <div className="auth-card scale-in">
