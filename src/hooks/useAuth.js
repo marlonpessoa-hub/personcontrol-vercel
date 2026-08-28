@@ -15,6 +15,7 @@ const useAuth = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
 
   // Só aceita usuários com ID válido; sessões parciais/corrompidas viram logout
   const aplicarUsuario = (u) => setUser(u?.id ? u : null);
@@ -39,6 +40,9 @@ const useAuth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       aplicarUsuario(session?.user || null);
+      if (_event === 'PASSWORD_RECOVERY') {
+        setIsRecoveringPassword(true);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -140,14 +144,62 @@ const useAuth = () => {
     }
   };
 
+  const resetPassword = async (email) => {
+    if (!isSupabaseConfigured) return { success: false, error: ERRO_SEM_CONFIG };
+    setLoading(true);
+    setError(null);
+    try {
+      const redirectTo = isNative
+        ? `com.marlonfpessoa.personcontrol:/${oauthCallbackPath}`
+        : `${window.location.origin}`;
+
+      const { error: supabaseError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo
+      });
+      if (supabaseError) throw supabaseError;
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePassword = async (newPassword) => {
+    if (!isSupabaseConfigured) return { success: false, error: ERRO_SEM_CONFIG };
+    setLoading(true);
+    setError(null);
+    try {
+      const { error: supabaseError } = await supabase.auth.updateUser({ password: newPassword });
+      if (supabaseError) throw supabaseError;
+      setIsRecoveringPassword(false);
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelPasswordRecovery = () => {
+    setIsRecoveringPassword(false);
+    setError(null);
+  };
+
   return {
     user,
     loading,
     error,
+    isRecoveringPassword,
     signUp,
     signIn,
     signInWithGoogle,
     signOut,
+    resetPassword,
+    updatePassword,
+    cancelPasswordRecovery,
     isAuthenticated: !!user
   };
 };

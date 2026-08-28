@@ -8,6 +8,8 @@ import Navigation from './components/UI/Navigation';
 import LoginScreen from './components/Auth/LoginScreen';
 import RegisterScreen from './components/Auth/RegisterScreen';
 import AccessScreen from './components/Auth/AccessScreen';
+import RecoveryScreen from './components/Auth/RecoveryScreen';
+import NewPasswordScreen from './components/Auth/NewPasswordScreen';
 import DashboardInativo from './components/Dashboard/DashboardInativo';
 import DashboardAtivo from './components/Dashboard/DashboardAtivo';
 import Historico from './components/History/Historico';
@@ -145,7 +147,32 @@ const App = () => {
     );
   }
 
+  if (auth.isRecoveringPassword) {
+    return (
+      <NewPasswordScreen
+        onUpdatePassword={auth.updatePassword}
+        onCancel={auth.cancelPasswordRecovery}
+        loading={auth.loading}
+        error={auth.error}
+        isDarkTheme={isDarkTheme}
+        onToggleTheme={toggleTheme}
+      />
+    );
+  }
+
   if (!autenticado) {
+    if (authScreen === 'recovery') {
+      return (
+        <RecoveryScreen
+          onRecovery={auth.resetPassword}
+          onBackToLogin={() => setAuthScreen('login')}
+          loading={auth.loading}
+          error={auth.error}
+          isDarkTheme={isDarkTheme}
+          onToggleTheme={toggleTheme}
+        />
+      );
+    }
     if (authScreen === 'register') {
       return (
         <RegisterScreen
@@ -163,6 +190,7 @@ const App = () => {
         onLogin={auth.signIn}
         onRegister={() => setAuthScreen('register')}
         onGoogleLogin={auth.signInWithGoogle}
+        onRecovery={() => setAuthScreen('recovery')}
         isDarkTheme={isDarkTheme}
         onToggleTheme={toggleTheme}
       />

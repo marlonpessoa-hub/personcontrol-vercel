@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import GoogleIcon from '../UI/GoogleIcon';
 
-const LoginScreen = ({ onLogin, onRegister, onGoogleLogin, isDarkTheme, onToggleTheme }) => {
+const LoginScreen = ({ onLogin, onRegister, onGoogleLogin, onRecovery, isDarkTheme, onToggleTheme }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -110,7 +110,10 @@ const LoginScreen = ({ onLogin, onRegister, onGoogleLogin, isDarkTheme, onToggle
         </form>
 
         <div className="auth-footer">
-          Não tem conta?{' '}
+          <button onClick={onRecovery} data-od-id="btn-forgot-password" type="button" style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: 0, font: 'inherit' }}>
+            Esqueceu a senha?
+          </button>
+          &nbsp;·&nbsp;
           <button onClick={onRegister} data-od-id="link-register" type="button" style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: 0, font: 'inherit' }}>
             Criar conta
           </button>
