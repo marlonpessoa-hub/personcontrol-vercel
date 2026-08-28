@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
 import supabase, { isSupabaseConfigured } from '../supabase';
+import {
+  isNative,
+  abrirUrl,
+  fecharNavegador,
+  aoReceberCallbackUrl,
+  oauthCallbackPath
+} from './useNative';
 
 const ERRO_SEM_CONFIG =
   'Supabase não configurado. Crie um arquivo .env com VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (veja .env.example).';
@@ -76,6 +83,43 @@ const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
+      if (isNative) {
+        // Fluxo PKCE para app nativo: abre o navegador in-app e captura o deep link de retorno
+        const { data, error: supabaseError } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `com.marlonfpessoa.personcontrol:/${oauthCallbackPath}`,
+            flowType: 'pkce',
+            skipBrowserRedirect: true
+          }
+        });
+        if (supabaseError) throw supabaseError;
+
+        const authUrl = data?.url;
+        if (!authUrl) throw new Error('Não foi possível iniciar o login com Google.');
+
+        const retorno = await new Promise((resolve) => {
+          aoReceberCallbackUrl(async (callbackUrl) => {
+            try {
+              const parsed = new URL(callbackUrl);
+              const code = parsed.searchParams.get('code');
+              if (!code) return resolve({ success: false, error: 'Callback sem código de autorização.' });
+              const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+              if (exchangeError) throw exchangeError;
+              await fecharNavegador();
+              const { data: { session } } = await supabase.auth.getSession();
+              aplicarUsuario(session?.user || null);
+              resolve({ success: true });
+            } catch (err) {
+              resolve({ success: false, error: err.message });
+            }
+          });
+          setTimeout(() => resolve({ success: false, error: 'Tempo de login excedido.' }), 60000);
+          abrirUrl(authUrl);
+        });
+        return retorno;
+      }
+
       const { error: supabaseError } = await supabase.auth.signInWithOAuth({ provider: 'google' });
       if (supabaseError) throw supabaseError;
       return { success: true };

@@ -5,12 +5,50 @@ import { Share } from '@capacitor/share';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Network } from '@capacitor/network';
 import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Geolocation } from '@capacitor/geolocation';
 
 // Detectar se estamos rodando como app nativo (Capacitor) ou no navegador
 const isNative = Capacitor.isNativePlatform();
+
+// Esquema customizado para callback OAuth no app nativo
+export const oauthCallbackScheme = 'com.marlonfpessoa.personcontrol';
+export const oauthCallbackPath = 'oauth2redirect';
+
+// ── Navegador in-app (OAuth) ──
+export const abrirUrl = async (url) => {
+  if (isNative) {
+    await Browser.open({ url, presentationStyle: 'popover' });
+  } else {
+    window.location.href = url;
+  }
+};
+
+export const fecharNavegador = async () => {
+  if (isNative) {
+    await Browser.close();
+  }
+};
+
+// Callback único para o deep link OAuth (evita acumular listeners)
+let callbackOAuth = null;
+let callbackRegistrado = false;
+
+const processarOAuth = (url) => {
+  if (callbackOAuth && url.includes(oauthCallbackPath)) {
+    callbackOAuth(url);
+  }
+};
+
+// Registrar callback do OAuth (deep link) no app nativo (registrado apenas 1x)
+export const aoReceberCallbackUrl = (callback) => {
+  callbackOAuth = callback;
+  if (callbackRegistrado || !isNative) return;
+  callbackRegistrado = true;
+  App.addListener('appUrlOpen', processarOAuth);
+};
 
 // ── Armazenamento seguro ──
 // No app nativo usa Preferences (SQLite/SharedPreferences nativo).
@@ -234,5 +272,10 @@ export default {
   aoReceberPush,
   obterPosicao,
   exportarDados,
-  compartilhar
+  compartilhar,
+  abrirUrl,
+  fecharNavegador,
+  aoReceberCallbackUrl,
+  oauthCallbackScheme,
+  oauthCallbackPath
 };
