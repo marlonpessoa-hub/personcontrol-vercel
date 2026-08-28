@@ -11,7 +11,7 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { Geolocation } from '@capacitor/geolocation';
 
 // Detectar se estamos rodando como app nativo (Capacitor) ou no navegador
-const isNative = Capacitor.isNativePlatform();
+export const isNative = Capacitor.isNativePlatform();
 
 // Esquema customizado para callback OAuth no app nativo
 export const oauthCallbackScheme = 'com.marlonfpessoa.personcontrol';
