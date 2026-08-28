@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import supabase, { isSupabaseConfigured } from '../supabase';
+import { nativeStorage, vibrar } from './useNative';
 import { calcularDuracao, calcularMinutosPausados, paraNumero } from '../utils/formatters';
 
 function chaveJornadas(userId) {
@@ -10,23 +11,22 @@ function chaveAtiva(userId) {
   return `personcontrol_jornada_ativa:${userId}`;
 }
 
-function lerCache(chave) {
+async function lerCache(chave) {
   try {
-    const raw = localStorage.getItem(chave);
-    return raw ? JSON.parse(raw) : null;
+    return await nativeStorage.get(chave);
   } catch {
     return null;
   }
 }
 
-function salvarCache(chave, dados) {
+async function salvarCache(chave, dados) {
   try {
     if (dados === null || dados === undefined) {
-      localStorage.removeItem(chave);
+      await nativeStorage.remove(chave);
     } else {
-      localStorage.setItem(chave, JSON.stringify(dados));
+      await nativeStorage.set(chave, dados);
     }
-  } catch { /* quota exceeded, ignore */ }
+  } catch { /* storage error, ignore */ }
 }
 
 // ── helpers: mapeamento camelCase ↔ snake_case (fora do hook para estabilidade) ──
@@ -102,8 +102,8 @@ const useJornada = (userId) => {
 
     async function carregar() {
       // 1. Carrega cache local imediatamente (instantâneo)
-      const cacheJornadas = lerCache(chaveJornadas(userId));
-      const cacheAtiva = lerCache(chaveAtiva(userId));
+      const cacheJornadas = await lerCache(chaveJornadas(userId));
+      const cacheAtiva = await lerCache(chaveAtiva(userId));
 
       if (cacheJornadas && !cancelado) {
         setJornadas(cacheJornadas);
@@ -129,12 +129,12 @@ const useJornada = (userId) => {
         if (!cancelado && !errJ && remoteJornadas) {
           const mapped = remoteJornadas.map(paraLocal);
           setJornadas(mapped);
-          salvarCache(chaveJornadas(userId), mapped);
+          await salvarCache(chaveJornadas(userId), mapped);
 
           // Jornada ativa = a mais recente sem data_fim
           const ativa = mapped.find(j => !j.dataFim) || null;
           setJornadaAtiva(ativa);
-          salvarCache(chaveAtiva(userId), ativa);
+          await salvarCache(chaveAtiva(userId), ativa);
         }
       } catch (err) {
         console.error('Erro ao buscar jornadas do Supabase, usando cache:', err);
@@ -183,6 +183,7 @@ const useJornada = (userId) => {
     };
 
     setJornadaAtiva(novaJornada);
+    vibrar();
 
     if (usarSupabase) {
       try {
@@ -267,6 +268,7 @@ const useJornada = (userId) => {
 
   // ── Pausar jornada ──
   const pausarJornada = useCallback(async () => {
+    vibrar();
     setJornadaAtiva(prev => {
       if (!prev || prev.pausada) return prev;
       const atualizada = {
@@ -290,6 +292,7 @@ const useJornada = (userId) => {
 
   // ── Retomar jornada ──
   const retomarJornada = useCallback(async () => {
+    vibrar();
     setJornadaAtiva(prev => {
       if (!prev || !prev.pausada) return prev;
       const pausas = [...(prev.pausas || [])];
@@ -315,6 +318,7 @@ const useJornada = (userId) => {
   // ── Encerrar jornada ──
   const encerrarJornada = useCallback(async (valorApp, valorDinheiro, kmFinal) => {
     if (!jornadaAtiva) return null;
+    vibrar();
 
     const app = paraNumero(valorApp);
     const dinheiro = paraNumero(valorDinheiro);

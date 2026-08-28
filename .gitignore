@@ -20,3 +20,16 @@ Thumbs.db
 # Vercel
 .vercel/
 
+# Android (Capacitor) - projeto nativo commitado, mas excluir build outputs e keystore
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/capacitor-cordova-android-plugins/build/
+release-key.keystore
+*.jks
+*.keystore
+
+# APK de distribuição (gerado via build)
+*.apk
+

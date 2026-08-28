@@ -4,7 +4,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 
 export default [
-  { ignores: ['dist'] },
+  { ignores: ['dist', 'android', 'release-key.keystore'] },
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx}'],

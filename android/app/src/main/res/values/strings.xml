@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PersonControl</string>
+    <string name="title_activity_main">PersonControl</string>
+    <string name="package_name">com.marlonfpessoa.personcontrol</string>
+    <string name="custom_url_scheme">com.marlonfpessoa.personcontrol</string>
+</resources>
