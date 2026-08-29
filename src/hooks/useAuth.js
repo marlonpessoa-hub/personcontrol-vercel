@@ -5,6 +5,7 @@ import {
   abrirUrl,
   fecharNavegador,
   aoReceberCallbackUrl,
+  oauthCallbackScheme,
   oauthCallbackPath
 } from './useNative';
 
@@ -100,11 +101,11 @@ const useAuth = () => {
     setError(null);
     try {
       if (isNative) {
-        // Fluxo PKCE para app nativo: abre o navegador in-app e captura o deep link de retorno
+        const redirectTo = `${oauthCallbackScheme}://${oauthCallbackPath}`;
         const { data, error: supabaseError } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `com.marlonfpessoa.personcontrol:/${oauthCallbackPath}`,
+            redirectTo,
             flowType: 'pkce',
             skipBrowserRedirect: true
           }
@@ -162,7 +163,7 @@ const useAuth = () => {
     setError(null);
     try {
       const redirectTo = isNative
-        ? `com.marlonfpessoa.personcontrol:/${oauthCallbackPath}`
+        ? `${oauthCallbackScheme}://${oauthCallbackPath}`
         : `${window.location.origin}`;
 
       const { error: supabaseError } = await supabase.auth.resetPasswordForEmail(email, {
