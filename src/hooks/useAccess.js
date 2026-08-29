@@ -18,17 +18,27 @@ const useAccess = (user) => {
   const [erroAcesso, setErroAcesso] = useState(null);
 
   const buscarAcesso = useCallback(async () => {
-    // Preferir RPC security definer: leitura garantida, independente de RLS
-    const { data: rpcData, error: rpcError } = await supabase.rpc('meu_acesso');
+    const timeout = (ms) => new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout ao buscar acesso')), ms)
+    );
+    const rpcResult = await Promise.race([
+      supabase.rpc('meu_acesso'),
+      timeout(10000)
+    ]);
+    const { data: rpcData, error: rpcError } = rpcResult;
     if (!rpcError) {
       return Array.isArray(rpcData) ? rpcData[0] ?? null : rpcData ?? null;
     }
     console.warn('meu_acesso indisponível, usando leitura direta:', rpcError.message);
-    const { data, error } = await supabase
-      .from('user_access')
-      .select('user_id, email, expira_em, is_admin')
-      .eq('user_id', user.id)
-      .maybeSingle();
+    const fallbackResult = await Promise.race([
+      supabase
+        .from('user_access')
+        .select('user_id, email, expira_em, is_admin')
+        .eq('user_id', user.id)
+        .maybeSingle(),
+      timeout(10000)
+    ]);
+    const { data, error } = fallbackResult;
     if (error) throw error;
     return data;
   }, [user?.id]);
@@ -45,7 +55,13 @@ const useAccess = (user) => {
       let linha = await buscarAcesso();
 
       if (!linha) {
-        const { error: erroTrial } = await supabase.rpc('garantir_acesso_trial');
+        const timeout = (ms) => new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), ms)
+        );
+        const { error: erroTrial } = await Promise.race([
+          supabase.rpc('garantir_acesso_trial'),
+          timeout(10000)
+        ]);
         if (erroTrial) {
           console.warn('PersonControl | garantir_acesso_trial indisponível:', erroTrial.message);
         } else {

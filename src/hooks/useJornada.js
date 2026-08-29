@@ -120,11 +120,17 @@ const useJornada = (userId) => {
 
       // 3. Busca dados frescos do Supabase
       try {
-        const { data: remoteJornadas, error: errJ } = await supabase
-          .from('jornadas')
-          .select('*')
-          .eq('user_id', userId)
-          .order('data_inicio', { ascending: false });
+        const timeout = (ms) => new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout ao buscar jornadas')), ms)
+        );
+        const { data: remoteJornadas, error: errJ } = await Promise.race([
+          supabase
+            .from('jornadas')
+            .select('*')
+            .eq('user_id', userId)
+            .order('data_inicio', { ascending: false }),
+          timeout(15000)
+        ]);
 
         if (!cancelado && !errJ && remoteJornadas) {
           const mapped = remoteJornadas.map(paraLocal);
