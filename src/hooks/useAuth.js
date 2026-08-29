@@ -150,10 +150,11 @@ const useAuth = () => {
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
-      setUser(null);
+      await supabase.auth.signOut({ scope: 'local' });
     } catch (err) {
       console.error('Sign out error:', err);
+    } finally {
+      setUser(null);
     }
   };
 

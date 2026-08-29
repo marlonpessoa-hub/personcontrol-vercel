@@ -16,6 +16,7 @@ const useAccess = (user) => {
   const [acesso, setAcesso] = useState(null);
   const [carregandoAcesso, setCarregandoAcesso] = useState(true);
   const [erroAcesso, setErroAcesso] = useState(null);
+  const [sessaoInvalida, setSessaoInvalida] = useState(false);
 
   const buscarAcesso = useCallback(async () => {
     const timeout = (ms) => new Promise((_, reject) =>
@@ -51,8 +52,12 @@ const useAccess = (user) => {
       return;
     }
     setCarregandoAcesso(true);
+    setSessaoInvalida(false);
     try {
       let linha = await buscarAcesso();
+
+      const erroChaveEstrangeira = (e) =>
+        /foreign key/i.test(e?.message || '') || /violates foreign key constraint/i.test(e?.message || '');
 
       if (!linha) {
         const timeout = (ms) => new Promise((_, reject) =>
@@ -62,12 +67,20 @@ const useAccess = (user) => {
           supabase.rpc('garantir_acesso_trial'),
           timeout(10000)
         ]);
+        if (erroTrial && erroChaveEstrangeira(erroTrial)) {
+          setSessaoInvalida(true);
+          setErroAcesso(
+            'Sua sessão está inválida (usuário inexistente). Clique em "Sair" e entre novamente.'
+          );
+          setAcesso(null);
+          return;
+        }
         if (!erroTrial) {
           linha = await buscarAcesso();
         }
       }
 
-      // Fallback: auto-recuperação via upsert direto (requer política INSERT no RLS)
+      // Fallback: auto-recuperação via insert direto (requer política INSERT no RLS)
       if (!linha) {
         try {
           const email = user.email;
@@ -84,6 +97,14 @@ const useAccess = (user) => {
             })
             .onConflict('user_id')
             .ignore();
+          if (upsertErr && erroChaveEstrangeira(upsertErr)) {
+            setSessaoInvalida(true);
+            setErroAcesso(
+              'Sua sessão está inválida (usuário inexistente). Clique em "Sair" e entre novamente.'
+            );
+            setAcesso(null);
+            return;
+          }
           if (!upsertErr) linha = await buscarAcesso();
         } catch (e) {
           console.warn('PersonControl | upsert de acesso indisponível:', e.message);
@@ -168,6 +189,7 @@ const useAccess = (user) => {
     acesso,
     carregandoAcesso,
     erroAcesso,
+    sessaoInvalida,
     bloqueado: !carregandoAcesso && (expirado || (!acesso && !erroAcesso)),
     expirado,
     expiraEm: expiraEmDate,
