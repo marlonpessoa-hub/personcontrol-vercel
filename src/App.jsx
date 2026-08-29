@@ -239,6 +239,25 @@ const App = () => {
 
   return (
     <div className="container" data-od-id="app">
+      {access.erroAcesso && (
+        <div
+          style={{
+            background: '#3a2a00',
+            color: '#ffcc66',
+            padding: '10px 14px',
+            fontSize: 13,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8
+          }}
+        >
+          <span>Não foi possível verificar seu acesso ({access.erroAcesso}). O app segue funcionando.</span>
+          <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={access.carregarAcesso}>
+            Tentar novamente
+          </button>
+        </div>
+      )}
       <Header 
         paginaAtual={pagina} 
         user={auth.user} 

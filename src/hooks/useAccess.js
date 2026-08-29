@@ -147,7 +147,7 @@ const useAccess = (user) => {
     acesso,
     carregandoAcesso,
     erroAcesso,
-    bloqueado: !carregandoAcesso && (!!erroAcesso || expirado),
+    bloqueado: !carregandoAcesso && (expirado || (!acesso && !erroAcesso)),
     expirado,
     expiraEm: expiraEmDate,
     diasRestantes,
