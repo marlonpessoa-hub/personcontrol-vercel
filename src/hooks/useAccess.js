@@ -62,10 +62,31 @@ const useAccess = (user) => {
           supabase.rpc('garantir_acesso_trial'),
           timeout(10000)
         ]);
-        if (erroTrial) {
-          console.warn('PersonControl | garantir_acesso_trial indisponível:', erroTrial.message);
-        } else {
+        if (!erroTrial) {
           linha = await buscarAcesso();
+        }
+      }
+
+      // Fallback: auto-recuperação via upsert direto (requer política INSERT no RLS)
+      if (!linha) {
+        try {
+          const email = user.email;
+          const isAdmin = String(email).toLowerCase() === 'marlonfpessoa@gmail.com';
+          const { error: upsertErr } = await supabase
+            .from('user_access')
+            .insert({
+              user_id: user.id,
+              email,
+              expira_em: new Date(
+                Date.now() + (isAdmin ? 36500 : 30) * 86400000
+              ).toISOString(),
+              is_admin: false
+            })
+            .onConflict('user_id')
+            .ignore();
+          if (!upsertErr) linha = await buscarAcesso();
+        } catch (e) {
+          console.warn('PersonControl | upsert de acesso indisponível:', e.message);
         }
       }
 
