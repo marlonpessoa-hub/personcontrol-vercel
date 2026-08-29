@@ -28,7 +28,13 @@ const useAuth = () => {
 
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const timeout = new Promise((resolve) =>
+          setTimeout(() => resolve({ data: { session: null } }), 10000)
+        );
+        const { data: { session } } = await Promise.race([
+          supabase.auth.getSession(),
+          timeout
+        ]);
         aplicarUsuario(session?.user || null);
       } catch (err) {
         console.error('Session check error:', err);
@@ -70,7 +76,13 @@ const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: supabaseError } = await supabase.auth.signInWithPassword({ email, password });
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Tempo limite excedido. Verifique sua conexão e tente novamente.')), 30000)
+      );
+      const { data, error: supabaseError } = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        timeout
+      ]);
       if (supabaseError) throw supabaseError;
       aplicarUsuario(data.user);
       return { success: true };

@@ -31,6 +31,7 @@ const App = () => {
   const [jornadaDetalhesId, setJornadaDetalhesId] = useState(null);
   const [jornadaEditar, setJornadaEditar] = useState(null);
   const [authScreen, setAuthScreen] = useState('login');
+  const [splashExcedido, setSplashExcedido] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     const saved = localStorage.getItem('personcontrol_theme');
     return saved ? saved === 'dark' : true;
@@ -66,6 +67,17 @@ const App = () => {
   const { configuracoes, atualizarConfiguracoes } = useConfiguracoes();
   const access = useAccess(auth.user);
   const autenticado = Boolean(auth.user?.id);
+
+  const splashAtivo = auth.loading || (autenticado && access.carregandoAcesso) || (autenticado && carregandoJornadas);
+
+  useEffect(() => {
+    if (!splashAtivo) {
+      setSplashExcedido(false);
+      return;
+    }
+    const timer = setTimeout(() => setSplashExcedido(true), 15000);
+    return () => clearTimeout(timer);
+  }, [splashAtivo]);
 
   useEffect(() => {
     if (pagina === 'admin' && !access.isAdmin) {
@@ -112,7 +124,7 @@ const App = () => {
 
   const ultimaJornada = jornadas.length > 0 ? jornadas[0] : null;
 
-  if (auth.loading || (autenticado && access.carregandoAcesso) || (autenticado && carregandoJornadas)) {
+  if (splashAtivo && !splashExcedido) {
     return (
       <div className="auth-container" data-od-id="loading-screen">
         <button 
