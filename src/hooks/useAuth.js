@@ -5,6 +5,7 @@ import {
   abrirUrl,
   fecharNavegador,
   aoReceberCallbackUrl,
+  consomeCallbackPendente,
   oauthCallbackScheme,
   oauthCallbackPath
 } from './useNative';
@@ -51,6 +52,19 @@ const useAuth = () => {
         setIsRecoveringPassword(true);
       }
     });
+
+    // Auto-completar OAuth se o app foi aberto via deep link (app relançado pelo SO)
+    const pendente = consomeCallbackPendente();
+    if (pendente) {
+      supabase.auth.exchangeCodeForSession(pendente)
+        .then(async ({ error }) => {
+          if (error) { console.error('OAuth pendente falhou:', error.message); return; }
+          await fecharNavegador();
+          const { data: { session } } = await supabase.auth.getSession();
+          aplicarUsuario(session?.user || null);
+        })
+        .catch((e) => console.error('OAuth pendente erro:', e));
+    }
 
     return () => subscription.unsubscribe();
   }, []);
@@ -116,12 +130,9 @@ const useAuth = () => {
         if (!authUrl) throw new Error('Não foi possível iniciar o login com Google.');
 
         const retorno = await new Promise((resolve) => {
-          aoReceberCallbackUrl(async (callbackUrl) => {
+          const processar = async (callbackUrl) => {
             try {
-              const parsed = new URL(callbackUrl);
-              const code = parsed.searchParams.get('code');
-              if (!code) return resolve({ success: false, error: 'Callback sem código de autorização.' });
-              const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+              const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(callbackUrl);
               if (exchangeError) throw exchangeError;
               await fecharNavegador();
               const { data: { session } } = await supabase.auth.getSession();
@@ -130,7 +141,15 @@ const useAuth = () => {
             } catch (err) {
               resolve({ success: false, error: err.message });
             }
-          });
+          };
+
+          const pendente = consomeCallbackPendente();
+          if (pendente) {
+            processar(pendente);
+            return;
+          }
+
+          aoReceberCallbackUrl(processar);
           setTimeout(() => resolve({ success: false, error: 'Tempo de login excedido.' }), 60000);
           abrirUrl(authUrl);
         });

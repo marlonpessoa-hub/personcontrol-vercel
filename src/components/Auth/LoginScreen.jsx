@@ -19,6 +19,16 @@ const LoginScreen = ({ onLogin, onRegister, onGoogleLogin, onRecovery, isDarkThe
     setLoading(false);
   };
 
+  const handleGoogle = async () => {
+    setError('');
+    setLoading(true);
+    const result = await onGoogleLogin();
+    if (result && !result.success) {
+      setError(result.error || 'Falha ao entrar com Google.');
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="auth-container" data-od-id="login-screen">
       <button 
@@ -57,12 +67,12 @@ const LoginScreen = ({ onLogin, onRegister, onGoogleLogin, onRecovery, isDarkThe
           <div className="auth-error" data-od-id="login-error">{error}</div>
         )}
         
-        <button 
-          className="btn-google btn-press" 
-          onClick={onGoogleLogin}
-          disabled={loading}
-          data-od-id="btn-google-login"
-        >
+          <button 
+            className="btn-google btn-press" 
+            onClick={handleGoogle}
+            disabled={loading}
+            data-od-id="btn-google-login"
+          >
           <GoogleIcon />
           Continuar com Google
         </button>
