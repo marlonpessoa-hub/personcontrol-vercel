@@ -13,7 +13,10 @@ function chaveAtiva(userId) {
 
 async function lerCache(chave) {
   try {
-    return await nativeStorage.get(chave);
+    const timeout = new Promise((resolve) =>
+      setTimeout(() => resolve(null), 3000)
+    );
+    return await Promise.race([nativeStorage.get(chave), timeout]);
   } catch {
     return null;
   }
@@ -21,11 +24,15 @@ async function lerCache(chave) {
 
 async function salvarCache(chave, dados) {
   try {
-    if (dados === null || dados === undefined) {
-      await nativeStorage.remove(chave);
-    } else {
-      await nativeStorage.set(chave, dados);
-    }
+    const operação = async () => {
+      if (dados === null || dados === undefined) {
+        await nativeStorage.remove(chave);
+      } else {
+        await nativeStorage.set(chave, dados);
+      }
+    };
+    const timeout = new Promise((resolve) => setTimeout(resolve, 3000));
+    await Promise.race([operação(), timeout]);
   } catch { /* storage error, ignore */ }
 }
 
@@ -101,6 +108,7 @@ const useJornada = (userId) => {
     let cancelado = false;
 
     async function carregar() {
+      try {
       // 1. Carrega cache local imediatamente (instantâneo)
       const cacheJornadas = await lerCache(chaveJornadas(userId));
       const cacheAtiva = await lerCache(chaveAtiva(userId));
@@ -114,12 +122,10 @@ const useJornada = (userId) => {
 
       // 2. Se não tem Supabase configurado, mantém no cache
       if (!usarSupabase) {
-        setCarregando(false);
         return;
       }
 
       // 3. Busca dados frescos do Supabase
-      try {
         const timeout = (ms) => new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Timeout ao buscar jornadas')), ms)
         );

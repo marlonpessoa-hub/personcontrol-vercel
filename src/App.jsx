@@ -75,7 +75,7 @@ const App = () => {
       setSplashExcedido(false);
       return;
     }
-    const timer = setTimeout(() => setSplashExcedido(true), 15000);
+    const timer = setTimeout(() => setSplashExcedido(true), 10000);
     return () => clearTimeout(timer);
   }, [splashAtivo]);
 
