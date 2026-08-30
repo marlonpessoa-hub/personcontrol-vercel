@@ -262,6 +262,7 @@ const useAuth = () => {
   return {
     user,
     loading,
+    isInitializing,
     error,
     isRecoveringPassword,
     signUp,

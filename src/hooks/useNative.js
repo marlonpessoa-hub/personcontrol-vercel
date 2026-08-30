@@ -35,7 +35,6 @@ export const fecharNavegador = async () => {
 // Callback único para o deep link OAuth (evita acumular listeners)
 let callbackOAuth = null;
 let ultimoCallback = null;
-let callbackRegistrado = false;
 
 const entregarCallback = (url) => {
   if (!url || !url.includes(oauthCallbackPath)) return false;
@@ -49,12 +48,14 @@ const entregarCallback = (url) => {
   return false;
 };
 
-// Registrar callback do OAuth (deep link) no app nativo (registrado apenas 1x)
+// Sempre registrar o listener nativo para capturar deep links mesmo se o app reiniciar
+if (isNative) {
+  App.addListener('appUrlOpen', (evento) => entregarCallback(evento?.url));
+}
+
+// Associar a função de processamento (chamado pela tela de login)
 export const aoReceberCallbackUrl = (callback) => {
   callbackOAuth = callback;
-  if (callbackRegistrado || !isNative) return;
-  callbackRegistrado = true;
-  App.addListener('appUrlOpen', (evento) => entregarCallback(evento?.url));
 };
 
 // Retorna e limpa um deep link recebido antes de o fluxo de login iniciar

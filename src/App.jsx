@@ -68,7 +68,7 @@ const App = () => {
   const access = useAccess(auth.user);
   const autenticado = Boolean(auth.user?.id);
 
-  const splashAtivo = auth.loading || (autenticado && access.carregandoAcesso) || (autenticado && carregandoJornadas);
+  const splashAtivo = auth.isInitializing || (autenticado && access.carregandoAcesso) || (autenticado && carregandoJornadas);
 
   useEffect(() => {
     if (!splashAtivo) {
