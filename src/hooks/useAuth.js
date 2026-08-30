@@ -56,14 +56,19 @@ const useAuth = () => {
     // Auto-completar OAuth se o app foi aberto via deep link (app relançado pelo SO)
     const pendente = consomeCallbackPendente();
     if (pendente) {
-      supabase.auth.exchangeCodeForSession(pendente)
-        .then(async ({ error }) => {
+      (async () => {
+        try {
+          const code = new URL(pendente).searchParams.get('code');
+          if (!code) { console.error('OAuth pendente sem código'); return; }
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) { console.error('OAuth pendente falhou:', error.message); return; }
           await fecharNavegador();
           const { data: { session } } = await supabase.auth.getSession();
           aplicarUsuario(session?.user || null);
-        })
-        .catch((e) => console.error('OAuth pendente erro:', e));
+        } catch (e) {
+          console.error('OAuth pendente erro:', e);
+        }
+      })();
     }
 
     return () => subscription.unsubscribe();
@@ -130,6 +135,13 @@ const useAuth = () => {
         if (!authUrl) throw new Error('Não foi possível iniciar o login com Google.');
 
         const retorno = await new Promise((resolve) => {
+          let processado = false;
+          const finalizar = (resultado) => {
+            if (processado) return;
+            processado = true;
+            resolve(resultado);
+          };
+
           const processar = async (callbackUrl) => {
             try {
               const parsed = new URL(callbackUrl);
@@ -140,20 +152,35 @@ const useAuth = () => {
               await fecharNavegador();
               const { data: { session } } = await supabase.auth.getSession();
               aplicarUsuario(session?.user || null);
-              resolve({ success: true });
+              finalizar({ success: true });
             } catch (err) {
-              resolve({ success: false, error: err.message });
+              finalizar({ success: false, error: err.message });
             }
           };
 
+          aoReceberCallbackUrl(processar);
           const pendente = consomeCallbackPendente();
           if (pendente) {
             processar(pendente);
             return;
           }
 
-          aoReceberCallbackUrl(processar);
-          setTimeout(() => resolve({ success: false, error: 'Tempo de login excedido.' }), 60000);
+          // Fallback: polling caso o appUrlOpen não entregue o deep link
+          const intervalo = setInterval(() => {
+            const pend = consomeCallbackPendente();
+            if (pend) {
+              clearInterval(intervalo);
+              processar(pend);
+            }
+          }, 500);
+
+          setTimeout(() => {
+            clearInterval(intervalo);
+            if (!processado) {
+              finalizar({ success: false, error: 'Tempo de login excedido (o retorno do Google não foi recebido).' });
+            }
+          }, 60000);
+
           abrirUrl(authUrl);
         });
         return retorno;
