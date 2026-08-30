@@ -132,7 +132,10 @@ const useAuth = () => {
         const retorno = await new Promise((resolve) => {
           const processar = async (callbackUrl) => {
             try {
-              const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(callbackUrl);
+              const parsed = new URL(callbackUrl);
+              const code = parsed.searchParams.get('code');
+              if (!code) throw new Error('Callback sem código de autorização.');
+              const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
               if (exchangeError) throw exchangeError;
               await fecharNavegador();
               const { data: { session } } = await supabase.auth.getSession();
