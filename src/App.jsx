@@ -86,12 +86,6 @@ const App = () => {
   }, [pagina, access.isAdmin]);
 
   useEffect(() => {
-    if (access.sessaoInvalida) {
-      auth.signOut();
-    }
-  }, [access.sessaoInvalida]);
-
-  useEffect(() => {
     const meta = auth.user?.user_metadata;
     const nomeGoogle = meta?.full_name || meta?.name;
     if (nomeGoogle && (!configuracoes.nomeMotorista || configuracoes.nomeMotorista === 'Motorista')) {

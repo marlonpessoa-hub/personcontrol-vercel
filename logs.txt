@@ -1,0 +1,9 @@
+{
+  "build": "2026-08-29T20:29:57.748Z",
+  "erro": "Seu usuário não possui registro de acesso e o sistema não conseguiu criá-lo automaticamente. Clique em \"Tentar novamente\" ou contate o administrador.",
+  "acesso": null,
+  "userId": "f633b08f-0b2b-451f-824a-7db4f4c1b38b",
+  "email": "marlonpessoa@gmail.com",
+  "autenticadoFlag": true,
+  "verificadoEm": "2026-08-29T23:29:46.788Z"
+}

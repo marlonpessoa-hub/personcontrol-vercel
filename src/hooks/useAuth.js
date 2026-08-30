@@ -172,10 +172,15 @@ const useAuth = () => {
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut({ scope: 'local' });
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
     } catch (err) {
       console.error('Sign out error:', err);
     } finally {
+      try {
+        const ref = supabase.supabaseUrl?.split('//')[1]?.split('.')[0];
+        if (ref) localStorage.removeItem(`sb-${ref}-auth-token`);
+      } catch { /* ignore */ }
+      try { localStorage.removeItem('personcontrol_auth'); } catch { /* ignore */ }
       setUser(null);
     }
   };
