@@ -16,6 +16,7 @@ const ERRO_SEM_CONFIG =
 const useAuth = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState(null);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
 
@@ -25,6 +26,7 @@ const useAuth = () => {
   useEffect(() => {
     if (!isSupabaseConfigured) {
       setLoading(false);
+      setIsInitializing(false);
       return undefined;
     }
 
@@ -42,6 +44,7 @@ const useAuth = () => {
         console.error('Session check error:', err);
       } finally {
         setLoading(false);
+        setIsInitializing(false);
       }
     };
     checkSession();
