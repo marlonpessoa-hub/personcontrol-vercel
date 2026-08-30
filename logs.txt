@@ -7,3 +7,5 @@
   "autenticadoFlag": true,
   "verificadoEm": "2026-08-29T23:29:46.788Z"
 }
+
+Seu usuário não possui registro de acesso e o sistema não conseguiu criá-lo automaticamente. Clique em "Tentar novamente" ou contate o administrador.

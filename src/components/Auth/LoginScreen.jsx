@@ -11,20 +11,31 @@ const LoginScreen = ({ onLogin, onRegister, onGoogleLogin, onRecovery, isDarkThe
     e.preventDefault();
     setError('');
     setLoading(true);
-    
-    const result = await onLogin(email, password);
-    if (!result.success) {
-      setError(result.error || 'Erro ao fazer login');
+    try {
+      const result = await onLogin(email, password);
+      if (!result.success) {
+        setError(result.error || 'Erro ao fazer login');
+        setLoading(false);
+        return;
+      }
+      // Se login sucesso, o app deve avançar para a tela inicial
+      // (o navego é tratado pelo App.jsx ao ver o auth.user mudar)
+    } catch (err) {
+      setError('EXCEÇÃO NO LOGIN: ' + (err.message || String(err)));
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleGoogle = async () => {
     setError('');
     setLoading(true);
-    const result = await onGoogleLogin();
-    if (result && !result.success) {
-      setError(result.error || 'Falha ao entrar com Google.');
+    try {
+      const result = await onGoogleLogin();
+      if (result && !result.success) {
+        setError(result.error || 'Falha ao entrar com Google.');
+      }
+    } catch (err) {
+      setError('EXCEÇÃO NO GOOGLE: ' + (err.message || String(err)));
     }
     setLoading(false);
   };
