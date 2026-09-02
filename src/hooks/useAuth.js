@@ -122,9 +122,73 @@ const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      // Usa o fluxo OAuth nativo do Supabase (abre navegador do sistema)
-      // e retorna ao app automaticamente. Não usa deep link customizado
-      // para evitar problemas de interceptação no Android.
+      if (isNative) {
+        const redirectTo = `${oauthCallbackScheme}://${oauthCallbackPath}`;
+        const { data, error: supabaseError } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo,
+            flowType: 'pkce',
+            skipBrowserRedirect: true
+          }
+        });
+        if (supabaseError) throw supabaseError;
+
+        const authUrl = data?.url;
+        if (!authUrl) throw new Error('Não foi possível iniciar o login com Google.');
+
+        const retorno = await new Promise((resolve) => {
+          let processado = false;
+          const finalizar = (resultado) => {
+            if (processado) return;
+            processado = true;
+            resolve(resultado);
+          };
+
+          const processar = async (callbackUrl) => {
+            try {
+              const parsed = new URL(callbackUrl);
+              const code = parsed.searchParams.get('code');
+              if (!code) throw new Error('Callback sem código de autorização.');
+              const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+              if (exchangeError) throw exchangeError;
+              await fecharNavegador();
+              const { data: { session } } = await supabase.auth.getSession();
+              aplicarUsuario(session?.user || null);
+              finalizar({ success: true });
+            } catch (err) {
+              finalizar({ success: false, error: err.message });
+            }
+          };
+
+          aoReceberCallbackUrl(processar);
+          const pendente = consomeCallbackPendente();
+          if (pendente) {
+            processar(pendente);
+            return;
+          }
+
+          // Fallback: polling caso o appUrlOpen não entregue o deep link
+          const intervalo = setInterval(() => {
+            const pend = consomeCallbackPendente();
+            if (pend) {
+              clearInterval(intervalo);
+              processar(pend);
+            }
+          }, 500);
+
+          setTimeout(() => {
+            clearInterval(intervalo);
+            if (!processado) {
+              finalizar({ success: false, error: 'Tempo de login excedido (o retorno do Google não foi recebido).' });
+            }
+          }, 60000);
+
+          abrirUrl(authUrl);
+        });
+        return retorno;
+      }
+
       const { error: supabaseError } = await supabase.auth.signInWithOAuth({ provider: 'google' });
       if (supabaseError) throw supabaseError;
       return { success: true };
