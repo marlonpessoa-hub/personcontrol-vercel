@@ -74,12 +74,18 @@ export const consomeCallbackPendente = () => {
 // No navegador usa localStorage (fallback compatível).
 export const nativeStorage = {
   async get(key) {
-    if (isNative) {
-      const { value } = await Preferences.get({ key });
-      return value !== null ? JSON.parse(value) : null;
+    try {
+      if (isNative) {
+        const { value } = await Preferences.get({ key });
+        if (value === null) return null;
+        try { return JSON.parse(value); } catch { return value; }
+      }
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch { return raw; }
+    } catch (e) {
+      return null;
     }
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
   },
   async set(key, value) {
     if (isNative) {

@@ -6,6 +6,7 @@ import {
   fecharNavegador,
   aoReceberCallbackUrl,
   consomeCallbackPendente,
+  nativeStorage,
   oauthCallbackScheme,
   oauthCallbackPath
 } from './useNative';
@@ -13,6 +14,7 @@ import {
 const ERRO_SEM_CONFIG =
   'Supabase não configurado. Crie um arquivo .env com VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (veja .env.example).';
 
+// ── PKCE (OAuth) agora gerenciado nativamente pelo @supabase/supabase-js ──
 const useAuth = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,9 +63,12 @@ const useAuth = () => {
     if (pendente) {
       (async () => {
         try {
-          const code = new URL(pendente).searchParams.get('code');
+          const parsed = new URL(pendente);
+          const code = parsed.searchParams.get('code');
           if (!code) { console.error('OAuth pendente sem código'); return; }
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          const flowId = parsed.searchParams.get('sb_flow_id') || 
+            (parsed.hash ? new URLSearchParams(parsed.hash.replace(/^#/, '')).get('sb_flow_id') : null);
+          const { error } = await supabase.auth.exchangeCodeForSession(code, flowId ? { flowId } : undefined);
           if (error) { console.error('OAuth pendente falhou:', error.message); return; }
           await fecharNavegador();
           const { data: { session } } = await supabase.auth.getSession();
@@ -124,11 +129,11 @@ const useAuth = () => {
     try {
       if (isNative) {
         const redirectTo = `${oauthCallbackScheme}://${oauthCallbackPath}`;
+
         const { data, error: supabaseError } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
             redirectTo,
-            flowType: 'pkce',
             skipBrowserRedirect: true
           }
         });
@@ -147,16 +152,42 @@ const useAuth = () => {
 
           const processar = async (callbackUrl) => {
             try {
+              console.log('[OAuth] Callback recebido:', callbackUrl);
               const parsed = new URL(callbackUrl);
-              const code = parsed.searchParams.get('code');
-              if (!code) throw new Error('Callback sem código de autorização.');
-              const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+              
+              let code = parsed.searchParams.get('code');
+              if (!code && parsed.hash) {
+                const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ''));
+                code = hashParams.get('code') || hashParams.get('access_token');
+              }
+              if (!code) {
+                const qIdx = callbackUrl.indexOf('?');
+                if (qIdx !== -1) {
+                  const qs = new URLSearchParams(callbackUrl.substring(qIdx + 1).split('#')[0]);
+                  code = qs.get('code');
+                }
+              }
+              if (!code) {
+                const err = parsed.searchParams.get('error') || parsed.searchParams.get('error_code');
+                const desc = parsed.searchParams.get('error_description') || parsed.searchParams.get('errorCode');
+                const hashErr = parsed.hash ? new URLSearchParams(parsed.hash.replace(/^#/, '')).get('error') : null;
+                const detalhe = err || hashErr ? ` erro=${err || hashErr} desc=${desc || ''}` : '';
+                throw new Error(`Callback sem código de autorização.${detalhe} URL=${callbackUrl}`);
+              }
+
+              // Extrai sb_flow_id do callback URL (PKCE_FLOW_ID_PARAM da lib)
+              const flowId = parsed.searchParams.get('sb_flow_id') || 
+                (parsed.hash ? new URLSearchParams(parsed.hash.replace(/^#/, '')).get('sb_flow_id') : null);
+              
+              const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code, flowId ? { flowId } : undefined);
               if (exchangeError) throw exchangeError;
+              
               await fecharNavegador();
               const { data: { session } } = await supabase.auth.getSession();
               aplicarUsuario(session?.user || null);
               finalizar({ success: true });
             } catch (err) {
+              console.error('[OAuth] Falha no processar:', err.message);
               finalizar({ success: false, error: err.message });
             }
           };
