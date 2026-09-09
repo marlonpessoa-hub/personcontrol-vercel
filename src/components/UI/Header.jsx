@@ -21,7 +21,7 @@ const Header = ({ user, onSignOut, isDarkTheme, onToggleTheme, onNavigate }) => 
 
   return (
     <header className="header" data-od-id="header">
-      <div className="logo" data-od-id="logo">
+      <div className="logo" data-od-id="logo" onClick={() => onNavigate('dashboard')} style={{ cursor: 'pointer' }} role="button" tabIndex="0" onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('dashboard'); } }}>
         <img src="/logo.png" alt="PersonControl" style={{ height: '36px', width: 'auto' }} />
       </div>
       <div className="user-menu">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { formatarData, formatarHora } from '../../utils/formatters';
+import AdminUsuarios from './AdminUsuarios';
 
 const OPCOES_DURACAO = [
   { valor: 30, rotulo: '30 dias' },
@@ -31,6 +32,7 @@ const copiarTexto = async (texto) => {
 };
 
 const AdminChaves = ({ criarChave, listarChaves, excluirChave }) => {
+  const [abaAtiva, setAbaAtiva] = useState('chaves');
   const [duracao, setDuracao] = useState(30);
   const [chaves, setChaves] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -94,117 +96,143 @@ const AdminChaves = ({ criarChave, listarChaves, excluirChave }) => {
     <div className="page page-animate" data-od-id="admin-chaves">
       <h1 className="page-title">Administração</h1>
 
-      {erro && (
-        <div className="auth-error" style={{ marginBottom: 'var(--space-4)' }} data-od-id="admin-error">
-          {erro}
-        </div>
-      )}
-
-      <div className="card card-animate" data-od-id="admin-gerar-card">
-        <div className="profile-section-title" style={{ marginBottom: 'var(--space-4)' }}>
-          Gerar nova chave
-        </div>
-        <div className="form-group">
-          <label className="form-label" htmlFor="select-duracao">Duração do acesso</label>
-          <select
-            id="select-duracao"
-            className="form-input"
-            value={duracao}
-            onChange={(e) => setDuracao(Number(e.target.value))}
-            data-od-id="select-duracao-chave"
-          >
-            {OPCOES_DURACAO.map((opcao) => (
-              <option key={opcao.valor} value={opcao.valor}>{opcao.rotulo}</option>
-            ))}
-          </select>
-        </div>
+      {/* Abas internas */}
+      <div className="admin-tabs" data-od-id="admin-tabs">
         <button
-          className="btn btn-primary btn-press"
-          onClick={handleCriar}
-          disabled={gerando}
-          style={{ width: '100%' }}
-          data-od-id="btn-gerar-chave"
+          className={`admin-tab ${abaAtiva === 'chaves' ? 'active' : ''}`}
+          onClick={() => setAbaAtiva('chaves')}
+          data-od-id="admin-tab-chaves"
         >
-          {gerando ? 'GERANDO...' : 'GERAR CHAVE'}
+          🔑 Chaves
         </button>
+        <button
+          className={`admin-tab ${abaAtiva === 'usuarios' ? 'active' : ''}`}
+          onClick={() => setAbaAtiva('usuarios')}
+          data-od-id="admin-tab-usuarios"
+        >
+          👥 Usuários
+        </button>
+      </div>
 
-        {novaChave && (
-          <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-4)', borderRadius: 'var(--radius-md, 8px)', background: 'rgba(59, 130, 246, 0.08)', border: '1px dashed rgba(59, 130, 246, 0.4)' }}>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--meta)', marginBottom: 'var(--space-1)' }}>
-              Chave gerada ({rotuloDuracao(novaChave.duracao_dias)}) — copie e envie ao usuário:
+      {/* Aba: Chaves */}
+      {abaAtiva === 'chaves' && (
+        <>
+          {erro && (
+            <div className="auth-error" style={{ marginBottom: 'var(--space-4)' }} data-od-id="admin-error">
+              {erro}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-              <span
-                style={{
-                  fontFamily: 'monospace',
-                  fontSize: 'var(--text-lg)',
-                  fontWeight: 700,
-                  letterSpacing: '0.08em'
-                }}
-                data-od-id="admin-nova-chave-codigo"
+          )}
+
+          <div className="card card-animate" data-od-id="admin-gerar-card">
+            <div className="profile-section-title" style={{ marginBottom: 'var(--space-4)' }}>
+              Gerar nova chave
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="select-duracao">Duração do acesso</label>
+              <select
+                id="select-duracao"
+                className="form-input"
+                value={duracao}
+                onChange={(e) => setDuracao(Number(e.target.value))}
+                data-od-id="select-duracao-chave"
               >
-                {novaChave.codigo}
-              </span>
-              <button className="btn btn-ghost btn-sm btn-press" onClick={handleCopiar} data-od-id="btn-copiar-chave">
-                {copiado ? 'COPIADO!' : 'COPIAR'}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="profile-stat-grid" style={{ margin: 'var(--space-5) 0' }} data-od-id="admin-stats">
-        <div className="profile-stat-card">
-          <div className="profile-stat-value" data-od-id="admin-total-chaves">{chaves.length}</div>
-          <div className="profile-stat-label">Chaves geradas</div>
-        </div>
-        <div className="profile-stat-card">
-          <div className="profile-stat-value accent" data-od-id="admin-disponiveis-chaves">{disponiveis}</div>
-          <div className="profile-stat-label">Disponíveis</div>
-        </div>
-      </div>
-
-      <div className="profile-section-title" style={{ marginBottom: 'var(--space-3)' }}>
-        Todas as chaves
-      </div>
-
-      {carregando ? (
-        <div className="empty-state">
-          <div className="empty-title">Carregando...</div>
-        </div>
-      ) : chaves.length === 0 ? (
-        <div className="empty-state scale-in" data-od-id="admin-vazio">
-          <div className="empty-icon">🔑</div>
-          <div className="empty-title">Nenhuma chave gerada</div>
-          <div className="empty-description">
-            Gere a primeira chave usando o formulário acima.
-          </div>
-        </div>
-      ) : (
-        chaves.map((chave) => (
-          <div key={chave.id} className="journey-item" data-od-id={`admin-chave-${chave.id}`}>
-            <div style={{ minWidth: 0 }}>
-              <div className="journey-date" style={{ fontFamily: 'monospace', letterSpacing: '0.06em' }}>
-                {chave.codigo}
-              </div>
-              <div className="journey-duration">
-                {rotuloDuracao(chave.duracao_dias)} •{' '}
-                {chave.usado_por
-                  ? `Usada por ${chave.usado_por_email || 'e-mail indisponível'} em ${formatarData(chave.usado_em)} às ${formatarHora(chave.usado_em)}`
-                  : 'Disponível'}
-              </div>
+                {OPCOES_DURACAO.map((opcao) => (
+                  <option key={opcao.valor} value={opcao.valor}>{opcao.rotulo}</option>
+                ))}
+              </select>
             </div>
             <button
-              className="btn btn-danger-outline btn-sm btn-press"
-              onClick={() => handleExcluir(chave.id)}
-              style={{ width: 'auto' }}
-              data-od-id={`btn-excluir-chave-${chave.id}`}
+              className="btn btn-primary btn-press"
+              onClick={handleCriar}
+              disabled={gerando}
+              style={{ width: '100%' }}
+              data-od-id="btn-gerar-chave"
             >
-              EXCLUIR
+              {gerando ? 'GERANDO...' : 'GERAR CHAVE'}
             </button>
+
+            {novaChave && (
+              <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-4)', borderRadius: 'var(--radius-md, 8px)', background: 'rgba(59, 130, 246, 0.08)', border: '1px dashed rgba(59, 130, 246, 0.4)' }}>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--meta)', marginBottom: 'var(--space-1)' }}>
+                  Chave gerada ({rotuloDuracao(novaChave.duracao_dias)}) — copie e envie ao usuário:
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                  <span
+                    style={{
+                      fontFamily: 'monospace',
+                      fontSize: 'var(--text-lg)',
+                      fontWeight: 700,
+                      letterSpacing: '0.08em'
+                    }}
+                    data-od-id="admin-nova-chave-codigo"
+                  >
+                    {novaChave.codigo}
+                  </span>
+                  <button className="btn btn-ghost btn-sm btn-press" onClick={handleCopiar} data-od-id="btn-copiar-chave">
+                    {copiado ? 'COPIADO!' : 'COPIAR'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        ))
+
+          <div className="profile-stat-grid" style={{ margin: 'var(--space-5) 0' }} data-od-id="admin-stats">
+            <div className="profile-stat-card">
+              <div className="profile-stat-value" data-od-id="admin-total-chaves">{chaves.length}</div>
+              <div className="profile-stat-label">Chaves geradas</div>
+            </div>
+            <div className="profile-stat-card">
+              <div className="profile-stat-value accent" data-od-id="admin-disponiveis-chaves">{disponiveis}</div>
+              <div className="profile-stat-label">Disponíveis</div>
+            </div>
+          </div>
+
+          <div className="profile-section-title" style={{ marginBottom: 'var(--space-3)' }}>
+            Todas as chaves
+          </div>
+
+          {carregando ? (
+            <div className="empty-state">
+              <div className="empty-title">Carregando...</div>
+            </div>
+          ) : chaves.length === 0 ? (
+            <div className="empty-state scale-in" data-od-id="admin-vazio">
+              <div className="empty-icon">🔑</div>
+              <div className="empty-title">Nenhuma chave gerada</div>
+              <div className="empty-description">
+                Gere a primeira chave usando o formulário acima.
+              </div>
+            </div>
+          ) : (
+            chaves.map((chave) => (
+              <div key={chave.id} className="journey-item" data-od-id={`admin-chave-${chave.id}`}>
+                <div style={{ minWidth: 0 }}>
+                  <div className="journey-date" style={{ fontFamily: 'monospace', letterSpacing: '0.06em' }}>
+                    {chave.codigo}
+                  </div>
+                  <div className="journey-duration">
+                    {rotuloDuracao(chave.duracao_dias)} •{' '}
+                    {chave.usado_por
+                      ? `Usada por ${chave.usado_por_email || 'e-mail indisponível'} em ${formatarData(chave.usado_em)} às ${formatarHora(chave.usado_em)}`
+                      : 'Disponível'}
+                  </div>
+                </div>
+                <button
+                  className="btn btn-danger-outline btn-sm btn-press"
+                  onClick={() => handleExcluir(chave.id)}
+                  style={{ width: 'auto' }}
+                  data-od-id={`btn-excluir-chave-${chave.id}`}
+                >
+                  EXCLUIR
+                </button>
+              </div>
+            ))
+          )}
+        </>
       )}
+
+      {/* Aba: Usuários */}
+      {abaAtiva === 'usuarios' && <AdminUsuarios />}
     </div>
   );
 };

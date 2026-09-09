@@ -8,6 +8,7 @@ const RegisterScreen = ({ onRegister, onLogin, onGoogleLogin, onAtivarChave, isD
   const [chave, setChave] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,6 +26,13 @@ const RegisterScreen = ({ onRegister, onLogin, onGoogleLogin, onAtivarChave, isD
       setLoading(false);
       return;
     }
+    
+    if (result.needsConfirmation) {
+      setNeedsConfirmation(true);
+      setLoading(false);
+      return;
+    }
+    
     if (chave.trim() && onAtivarChave) {
       await onAtivarChave(chave.trim());
     }
@@ -65,12 +73,30 @@ const RegisterScreen = ({ onRegister, onLogin, onGoogleLogin, onAtivarChave, isD
       <div className="auth-card scale-in">
         <h1 className="auth-title">Criar Conta</h1>
         
-        {error && (
-          <div className="auth-error" data-od-id="register-error">{error}</div>
-        )}
-        
-        <button 
-          className="btn-google btn-press" 
+        {needsConfirmation ? (
+          <div style={{ textAlign: 'center', padding: 'var(--space-4) 0' }}>
+            <div style={{ fontSize: '48px', marginBottom: 'var(--space-3)' }}>✉️</div>
+            <h2 style={{ fontSize: 'var(--text-lg)', marginBottom: 'var(--space-2)' }}>Verifique seu e-mail</h2>
+            <p style={{ color: 'var(--muted)', marginBottom: 'var(--space-4)', lineHeight: 1.5 }}>
+              Enviamos um link de confirmação para <strong>{email}</strong>. 
+              Por favor, verifique sua caixa de entrada (e a pasta de spam) para ativar sua conta.
+            </p>
+            <button 
+              className="btn btn-primary btn-press" 
+              onClick={onLogin}
+              style={{ width: '100%' }}
+            >
+              IR PARA O LOGIN
+            </button>
+          </div>
+        ) : (
+          <>
+            {error && (
+              <div className="auth-error" data-od-id="register-error">{error}</div>
+            )}
+            
+            <button 
+              className="btn-google btn-press" 
           onClick={onGoogleLogin}
           disabled={loading}
           data-od-id="btn-google-register"
@@ -157,6 +183,8 @@ const RegisterScreen = ({ onRegister, onLogin, onGoogleLogin, onAtivarChave, isD
             Fazer login
           </button>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

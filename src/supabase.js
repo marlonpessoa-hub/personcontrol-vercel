@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { Preferences } from '@capacitor/preferences';
 import { isNative, nativeStorage } from './hooks/useNative';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -14,23 +15,41 @@ if (!isSupabaseConfigured) {
   );
 }
 
-// Adaptador de storage para o Supabase que converte objetos/arrays (se houver) em string,
-// pois o Supabase-js espera strings cruas.
+// Adaptador de storage direto para o Supabase usando as APIs de storage brutas (sem serialização extra)
 const supabaseStorageAdapter = {
   getItem: async (key) => {
-    const val = await nativeStorage.get(key);
-    // nativeStorage converte de/para JSON, mas o supabase quer a string original
-    // Se for string, retornamos direto. Se for objeto (ex: array de flows), stringificamos de volta.
-    if (val === null || val === undefined) return null;
-    return typeof val === 'string' ? val : JSON.stringify(val);
+    if (isNative) {
+      try {
+        const { value } = await Preferences.get({ key });
+        return value;
+      } catch (e) {
+        console.error('[Supabase Storage] Erro ao ler:', key, e);
+        return null;
+      }
+    }
+    return localStorage.getItem(key);
   },
   setItem: async (key, value) => {
-    // Gravamos como string mesmo (o nativeStorage.set vai fazer JSON.stringify, 
-    // então a string vai ficar duplamente serializada ""valor"", mas tudo bem, o getItem lida com isso)
-    await nativeStorage.set(key, value);
+    if (isNative) {
+      try {
+        await Preferences.set({ key, value });
+      } catch (e) {
+        console.error('[Supabase Storage] Erro ao gravar:', key, e);
+      }
+      return;
+    }
+    localStorage.setItem(key, value);
   },
   removeItem: async (key) => {
-    await nativeStorage.remove(key);
+    if (isNative) {
+      try {
+        await Preferences.remove({ key });
+      } catch (e) {
+        console.error('[Supabase Storage] Erro ao remover:', key, e);
+      }
+      return;
+    }
+    localStorage.removeItem(key);
   }
 };
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Preferences } from '@capacitor/preferences';
 import supabase, { isSupabaseConfigured } from '../supabase';
 import {
   isNative,
@@ -89,8 +90,14 @@ const useAuth = () => {
     try {
       const { data, error: supabaseError } = await supabase.auth.signUp({ email, password });
       if (supabaseError) throw supabaseError;
-      aplicarUsuario(data.user);
-      return { success: true };
+      
+      if (data.session) {
+        aplicarUsuario(data.user);
+        return { success: true };
+      } else {
+        // Quando a confirmação de email está ativada no Supabase, a session vem nula
+        return { success: true, needsConfirmation: true };
+      }
     } catch (err) {
       setError(err.message);
       return { success: false, error: err.message };
@@ -134,6 +141,7 @@ const useAuth = () => {
           provider: 'google',
           options: {
             redirectTo,
+            flowType: 'pkce',
             skipBrowserRedirect: true
           }
         });
@@ -188,7 +196,20 @@ const useAuth = () => {
               finalizar({ success: true });
             } catch (err) {
               console.error('[OAuth] Falha no processar:', err.message);
-              finalizar({ success: false, error: err.message });
+              let debugInfo = '';
+              try {
+                const { keys } = await Preferences.getKeys();
+                const sbKeys = keys.filter(k => k.includes('sb-') || k.includes('verifier') || k.includes('flow'));
+                const list = [];
+                for (const k of sbKeys) {
+                  const { value } = await Preferences.get({ key: k });
+                  list.push(`${k}=${value ? value.substring(0, 15) + '...' : 'null'}`);
+                }
+                debugInfo = ` | StorageKeys: [${list.join(', ')}]`;
+              } catch (se) {
+                debugInfo = ` | Erro ao ler debug keys: ${se.message}`;
+              }
+              finalizar({ success: false, error: `${err.message}${debugInfo}` });
             }
           };
 

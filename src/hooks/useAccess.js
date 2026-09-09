@@ -22,26 +22,38 @@ const useAccess = (user) => {
     const timeout = (ms) => new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Timeout ao buscar acesso')), ms)
     );
-    const rpcResult = await Promise.race([
-      supabase.rpc('meu_acesso'),
-      timeout(10000)
-    ]);
-    const { data: rpcData, error: rpcError } = rpcResult;
-    if (!rpcError) {
-      return Array.isArray(rpcData) ? rpcData[0] ?? null : rpcData ?? null;
+    
+    try {
+      const fallbackResult = await Promise.race([
+        supabase
+          .from('user_access')
+          .select('user_id, email, expira_em, is_admin')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+        timeout(10000)
+      ]);
+      
+      if (!fallbackResult.error && fallbackResult.data) {
+        return fallbackResult.data;
+      }
+      
+      // Se não encontrou via direct select ou deu erro leve, tenta a RPC
+      const rpcResult = await Promise.race([
+        supabase.rpc('meu_acesso'),
+        timeout(10000)
+      ]);
+      
+      if (!rpcResult.error) {
+        const rpcData = Array.isArray(rpcResult.data) ? rpcResult.data[0] ?? null : rpcResult.data ?? null;
+        if (rpcData) return rpcData;
+      }
+      
+      if (fallbackResult.error) throw fallbackResult.error;
+      return null;
+    } catch (error) {
+      console.warn('Erro em buscarAcesso:', error);
+      throw error;
     }
-    console.warn('meu_acesso indisponível, usando leitura direta:', rpcError.message);
-    const fallbackResult = await Promise.race([
-      supabase
-        .from('user_access')
-        .select('user_id, email, expira_em, is_admin')
-        .eq('user_id', user.id)
-        .maybeSingle(),
-      timeout(10000)
-    ]);
-    const { data, error } = fallbackResult;
-    if (error) throw error;
-    return data;
   }, [user?.id]);
 
   const carregarAcesso = useCallback(async () => {
@@ -87,16 +99,14 @@ const useAccess = (user) => {
           const isAdmin = String(email).toLowerCase() === 'marlonfpessoa@gmail.com';
           const { error: upsertErr } = await supabase
             .from('user_access')
-            .insert({
+            .upsert({
               user_id: user.id,
               email,
               expira_em: new Date(
                 Date.now() + (isAdmin ? 36500 : 30) * 86400000
               ).toISOString(),
               is_admin: false
-            })
-            .onConflict('user_id')
-            .ignore();
+            }, { onConflict: 'user_id', ignoreDuplicates: true });
           if (upsertErr && erroChaveEstrangeira(upsertErr)) {
             setSessaoInvalida(true);
             setErroAcesso(
