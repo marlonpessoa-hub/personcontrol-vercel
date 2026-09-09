@@ -23,8 +23,14 @@ const useAuth = () => {
   const [error, setError] = useState(null);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
 
-  // Só aceita usuários com ID válido; sessões parciais/corrompidas viram logout
-  const aplicarUsuario = (u) => setUser(u?.id ? u : null);
+  // Só aceita usuários com ID válido e email confirmado; sessões parciais/corrompidas viram logout
+  const aplicarUsuario = (u) => {
+    if (u && !u.email_confirmed_at) {
+      setUser(null);
+      return;
+    }
+    setUser(u?.id ? u : null);
+  };
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -92,6 +98,10 @@ const useAuth = () => {
       if (supabaseError) throw supabaseError;
       
       if (data.session) {
+        if (!data.user.email_confirmed_at) {
+          await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+          return { success: true, needsConfirmation: true };
+        }
         aplicarUsuario(data.user);
         return { success: true };
       } else {
@@ -119,6 +129,10 @@ const useAuth = () => {
         timeout
       ]);
       if (supabaseError) throw supabaseError;
+      if (data.user && !data.user.email_confirmed_at) {
+        await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+        throw new Error('Por favor, confirme seu e-mail (verifique sua caixa de entrada e spam) antes de acessar o aplicativo.');
+      }
       aplicarUsuario(data.user);
       return { success: true };
     } catch (err) {
