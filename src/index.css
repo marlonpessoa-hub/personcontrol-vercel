@@ -3,23 +3,23 @@
 @tailwind utilities;
 
 :root {
-  --bg: #000000;
-  --surface: #0a0a0a;
-  --surface-warm: #111111;
-  --fg: #f0f0fa;
-  --fg-2: #a0a0b0;
-  --muted: rgba(240, 240, 250, 0.6);
-  --meta: rgba(240, 240, 250, 0.4);
-  --border: rgba(240, 240, 250, 0.15);
-  --border-soft: rgba(240, 240, 250, 0.08);
-  --accent: #00d4aa;
-  --accent-hover: #00f5c4;
-  --accent-active: #00b894;
-  --accent-on: #000000;
-  --success: #00d4aa;
-  --warn: #ffd93d;
-  --danger: #ff6b6b;
-  --danger-hover: #ff8787;
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-warm: #334155;
+  --fg: #f8fafc;
+  --fg-2: #cbd5e1;
+  --muted: #94a3b8;
+  --meta: #64748b;
+  --border: #334155;
+  --border-soft: #1e293b;
+  --accent: #10b981;
+  --accent-hover: #34d399;
+  --accent-active: #059669;
+  --accent-on: #ffffff;
+  --success: #10b981;
+  --warn: #fbbf24;
+  --danger: #ef4444;
+  --danger-hover: #f87171;
   --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --text-xs: 0.75rem;
@@ -53,23 +53,23 @@
 }
 
 .light-theme {
-  --bg: #f5f5f7;
+  --bg: #f8fafc;
   --surface: #ffffff;
-  --surface-warm: #f0f0f2;
-  --fg: #1a1a2e;
-  --fg-2: #4a4a6a;
-  --muted: rgba(26, 26, 46, 0.6);
-  --meta: rgba(26, 26, 46, 0.55);
-  --border: rgba(26, 26, 46, 0.12);
-  --border-soft: rgba(26, 26, 46, 0.06);
-  --accent: #00b894;
-  --accent-hover: #00d4aa;
-  --accent-active: #009975;
+  --surface-warm: #f1f5f9;
+  --fg: #0f172a;
+  --fg-2: #334155;
+  --muted: #64748b;
+  --meta: #94a3b8;
+  --border: #e2e8f0;
+  --border-soft: #f1f5f9;
+  --accent: #059669;
+  --accent-hover: #10b981;
+  --accent-active: #047857;
   --accent-on: #ffffff;
-  --success: #00b894;
-  --warn: #f39c12;
-  --danger: #e74c3c;
-  --danger-hover: #c0392b;
+  --success: #059669;
+  --warn: #d97706;
+  --danger: #dc2626;
+  --danger-hover: #ef4444;
   --elev-raised: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 
@@ -121,42 +121,69 @@ body {
   color: var(--accent);
 }
 
-.nav-tabs {
-  display: flex;
-  gap: var(--space-1);
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: var(--surface);
-  padding: var(--space-1);
-  border-radius: var(--radius-pill);
-  margin-bottom: var(--space-6);
+  border-top: 1px solid var(--border-soft);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 40;
 }
 
-.nav-tab {
+.bottom-nav-inner {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  max-width: 480px;
+  margin: 0 auto;
+  height: 64px;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   flex: 1;
-  padding: var(--space-3) var(--space-4);
+  height: 100%;
   background: transparent;
   border: none;
-  border-radius: var(--radius-pill);
   color: var(--muted);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 500;
   cursor: pointer;
-  transition: all var(--motion-fast) var(--ease-standard);
+  transition: color var(--motion-fast) var(--ease-standard);
+  gap: 4px;
 }
 
-.nav-tab:hover {
+.bottom-nav-item:hover {
   color: var(--fg);
-  background: var(--surface-warm);
 }
 
-.nav-tab.active {
-  background: var(--accent);
-  color: var(--accent-on);
+.bottom-nav-item.active {
+  color: var(--accent);
 }
 
-.nav-tab:focus-visible {
+.bottom-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-nav-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
+}
+
+.bottom-nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-body);
+}
+
+.bottom-nav-item:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring);
 }
 
 .card {
@@ -641,7 +668,7 @@ body {
 }
 
 .page {
-  padding-bottom: var(--space-8);
+  padding-bottom: calc(64px + var(--space-8) + env(safe-area-inset-bottom, 0px));
 }
 
 .page-title {

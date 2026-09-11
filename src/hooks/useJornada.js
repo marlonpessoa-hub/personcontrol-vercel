@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import supabase, { isSupabaseConfigured } from '../supabase';
 import { nativeStorage, vibrar } from './useNative';
 import { calcularDuracao, calcularMinutosPausados, paraNumero } from '../utils/formatters';
@@ -37,6 +37,11 @@ async function salvarCache(chave, dados) {
 }
 
 // ── helpers: mapeamento camelCase ↔ snake_case (fora do hook para estabilidade) ──
+function chaveDiaLocal(iso) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
 function paraSupabase(j, userId) {
   return {
     id: j.id,
@@ -463,23 +468,23 @@ const useJornada = (userId) => {
   }, [usarSupabase]);
 
   // ── Estatísticas do mês ──
-  const estatisticasMes = useMemo(() => {
-    const agora = new Date();
-    const mesAtual = agora.getMonth();
-    const anoAtual = agora.getFullYear();
+  const estatisticasMes = useCallback((referencia = new Date()) => {
+    const mes = referencia.getMonth();
+    const ano = referencia.getFullYear();
 
     const jornadasMes = jornadas.filter(j => {
       const data = new Date(j.dataInicio);
-      return data.getMonth() === mesAtual && data.getFullYear() === anoAtual;
+      return data.getMonth() === mes && data.getFullYear() === ano;
     });
 
+    const diasTrabalhados = new Set(jornadasMes.map(j => chaveDiaLocal(j.dataInicio))).size;
+    const totalGanho = jornadasMes.reduce((acc, j) => acc + j.totalGanho, 0);
+
     return {
-      diasTrabalhados: jornadasMes.length,
-      totalGanho: jornadasMes.reduce((acc, j) => acc + j.totalGanho, 0),
+      diasTrabalhados,
+      totalGanho,
       totalHoras: jornadasMes.reduce((acc, j) => acc + j.duracaoMinutos, 0) / 60,
-      ganhoMedio: jornadasMes.length > 0
-        ? jornadasMes.reduce((acc, j) => acc + j.totalGanho, 0) / jornadasMes.length
-        : 0
+      ganhoMedio: diasTrabalhados > 0 ? totalGanho / diasTrabalhados : 0
     };
   }, [jornadas]);
 

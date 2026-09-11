@@ -36,6 +36,10 @@ const App = () => {
     const saved = localStorage.getItem('personcontrol_theme');
     return saved ? saved === 'dark' : true;
   });
+  const [mesSelecionado, setMesSelecionado] = useState(() => {
+    const agora = new Date();
+    return new Date(agora.getFullYear(), agora.getMonth(), 1);
+  });
 
   useEffect(() => {
     localStorage.setItem('personcontrol_theme', isDarkTheme ? 'dark' : 'light');
@@ -271,9 +275,11 @@ const App = () => {
       {pagina === 'dashboard' && !jornadaAtiva && (
         <DashboardInativo 
           onIniciar={() => setModalIniciar(true)}
-          estatisticas={estatisticasMes}
+          estatisticas={estatisticasMes(mesSelecionado)}
           ultimaJornada={ultimaJornada}
           nomeMotorista={configuracoes.nomeMotorista}
+          mesReferencia={mesSelecionado}
+          onMudarMes={setMesSelecionado}
         />
       )}
 
