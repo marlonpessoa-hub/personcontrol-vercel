@@ -12,7 +12,6 @@
       "keystoreAlias": "personcontrol"
     },
     "allowMixedContent": true,
-    "captureInput": true,
     "webContentsDebuggingEnabled": false,
     "versionCode": 10000,
     "versionName": "1.0.0"

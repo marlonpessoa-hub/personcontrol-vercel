@@ -76,6 +76,12 @@ const DetalhesJornada = ({ jornada, onVoltar, onExcluir, onEditar }) => {
           <span className="detail-label">Valor Dinheiro</span>
           <span className="detail-value">{formatarMoeda(jornada.valorDinheiro)}</span>
         </div>
+        {(jornada.totalGorjetas || 0) > 0 && (
+          <div className="detail-row">
+            <span className="detail-label">Gorjetas</span>
+            <span className="detail-value" style={{ color: '#22c55e' }}>{formatarMoeda(jornada.totalGorjetas)}</span>
+          </div>
+        )}
         <div className="divider"></div>
         <div className="detail-row">
           <span className="detail-label">Total Ganho</span>

@@ -7,8 +7,10 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
   const [valorDinheiro, setValorDinheiro] = useState('');
   const [kmFinal, setKmFinal] = useState('');
 
-  const totalGanho = (parseFloat(valorApp) || 0) + (parseFloat(valorDinheiro) || 0);
-  const saldoFinal = jornadaAtiva ? jornadaAtiva.saldoInicial + totalGanho : 0;
+  const totalGanho = (parseFloat(valorApp) || 0) + (parseFloat(valorDinheiro) || 0) + (jornadaAtiva?.totalGorjetas || 0);
+  const totalGastos = jornadaAtiva?.totalGastos || 0;
+  const lucroLiquido = totalGanho - totalGastos;
+  const saldoFinal = jornadaAtiva ? jornadaAtiva.saldoInicial + lucroLiquido : 0;
 
   const agora = new Date();
   const duracaoBruta = jornadaAtiva ? calcularDuracao(jornadaAtiva.dataInicio, agora) : 0;
@@ -19,6 +21,7 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
   const kmFinalNum = parseFloat(kmFinal);
   const kmValido = kmFinal !== '' && Number.isFinite(kmFinalNum) && (kmInicial === null || kmFinalNum >= kmInicial);
   const kmRodadoPrevisto = kmValido && kmInicial !== null ? kmFinalNum - kmInicial : null;
+  const valorPorKm = kmRodadoPrevisto != null && kmRodadoPrevisto > 0 ? totalGanho / kmRodadoPrevisto : null;
 
   const handleConfirm = () => {
     if (!kmValido) return;
@@ -129,12 +132,28 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
           </span>
         </div>
       )}
+      {valorPorKm !== null && (
+        <div className="detail-row">
+          <span className="detail-label">Valor por KM</span>
+          <span className="detail-value accent" data-od-id="detail-valor-por-km">
+            {formatarMoeda(valorPorKm)}
+          </span>
+        </div>
+      )}
       <div className="detail-row">
         <span className="detail-label">Total Ganho</span>
         <span className="detail-value accent" data-od-id="detail-total-ganho">
           {formatarMoeda(totalGanho)}
         </span>
       </div>
+      {(jornadaAtiva?.totalGorjetas || 0) > 0 && (
+        <div className="detail-row">
+          <span className="detail-label">Gorjetas</span>
+          <span className="detail-value" style={{ color: '#22c55e' }} data-od-id="detail-gorjetas">
+            {formatarMoeda(jornadaAtiva.totalGorjetas || 0)}
+          </span>
+        </div>
+      )}
       <div className="detail-row">
         <span className="detail-label">Gastos</span>
         <span
@@ -142,20 +161,24 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
           style={{ color: (jornadaAtiva?.totalGastos || 0) > 0 ? '#ef4444' : undefined }}
           data-od-id="detail-gastos"
         >
-          {formatarMoeda(jornadaAtiva?.totalGastos || 0)}
+          {formatarMoeda(totalGastos)}
         </span>
       </div>
       <div className="detail-row">
         <span className="detail-label">Lucro Líquido</span>
-        <span className="detail-value accent" data-od-id="detail-lucro-liquido">
-          {formatarMoeda(totalGanho - (jornadaAtiva?.totalGastos || 0))}
+        <span className="detail-value" data-od-id="detail-lucro-liquido">
+          {formatarMoeda(lucroLiquido)}
         </span>
       </div>
-      <div className="detail-row">
-        <span className="detail-label">Saldo Final</span>
-        <span className="detail-value accent" data-od-id="detail-saldo-final">
+
+      <div className="card" style={{ marginTop: 'var(--space-5)', padding: 'var(--space-5)', borderRadius: 'var(--radius-xl)', background: '#0a1128', color: '#fff', border: 'none', textAlign: 'center' }} data-od-id="resumo-saldo-final">
+        <div style={{ fontSize: 'var(--text-xs)', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>Saldo Final</div>
+        <div style={{ fontSize: '2.25rem', fontWeight: '800', color: '#4ade80', lineHeight: 1.1 }} data-od-id="detail-saldo-final">
           {formatarMoeda(saldoFinal)}
-        </span>
+        </div>
+        <div style={{ fontSize: 'var(--text-xs)', color: '#94a3b8', marginTop: 'var(--space-1)' }}>
+          Saldo inicial + ganhos − gastos
+        </div>
       </div>
 
       <button

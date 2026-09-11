@@ -19,8 +19,8 @@ const ModalEditarJornada = ({ isOpen, onClose, onConfirm, jornada }) => {
     }
   }, [jornada]);
 
-  const totalGanho = (parseFloat(valorApp) || 0) + (parseFloat(valorDinheiro) || 0);
-  const saldoFinal = jornada ? jornada.saldoInicial + totalGanho : 0;
+  const totalGanho = (parseFloat(valorApp) || 0) + (parseFloat(valorDinheiro) || 0) + (jornada?.totalGorjetas || 0);
+  const saldoFinal = jornada ? jornada.saldoInicial + totalGanho - (jornada.totalGastos || 0) : 0;
 
   const kmIniNum = parseFloat(kmInicial);
   const kmFimNum = parseFloat(kmFinal);

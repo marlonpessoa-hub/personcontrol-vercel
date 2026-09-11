@@ -21,12 +21,14 @@ import ModalIniciarJornada from './components/Modals/ModalIniciarJornada';
 import ModalEncerrarJornada from './components/Modals/ModalEncerrarJornada';
 import ModalEditarJornada from './components/Modals/ModalEditarJornada';
 import ModalGasto from './components/Modals/ModalGasto';
+import ModalGorjeta from './components/Modals/ModalGorjeta';
 
 const App = () => {
   const [pagina, setPagina] = useState('dashboard');
   const [modalIniciar, setModalIniciar] = useState(false);
   const [modalEncerrar, setModalEncerrar] = useState(false);
   const [modalGasto, setModalGasto] = useState(false);
+  const [modalGorjeta, setModalGorjeta] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
   const [jornadaDetalhesId, setJornadaDetalhesId] = useState(null);
   const [jornadaEditar, setJornadaEditar] = useState(null);
@@ -62,6 +64,8 @@ const App = () => {
     retomarJornada,
     adicionarGasto,
     removerGasto,
+    adicionarGorjeta,
+    removerGorjeta,
     encerrarJornada,
     excluirJornada,
     editarJornada,
@@ -292,6 +296,8 @@ const App = () => {
           }
           onAddGasto={() => setModalGasto(true)}
           onRemoveGasto={removerGasto}
+          onAddGorjeta={() => setModalGorjeta(true)}
+          onRemoveGorjeta={removerGorjeta}
         />
       )}
 
@@ -342,6 +348,12 @@ const App = () => {
         isOpen={modalGasto}
         onClose={() => setModalGasto(false)}
         onConfirm={adicionarGasto}
+      />
+
+      <ModalGorjeta
+        isOpen={modalGorjeta}
+        onClose={() => setModalGorjeta(false)}
+        onConfirm={adicionarGorjeta}
       />
 
       <ModalIniciarJornada

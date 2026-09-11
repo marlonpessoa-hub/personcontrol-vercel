@@ -24,7 +24,7 @@ const Header = ({ user, isDarkTheme, onToggleTheme, onNavigate }) => {
     <header className="header" data-od-id="header" style={{ padding: 'var(--space-4) 0', borderBottom: 'none', marginBottom: 'var(--space-2)' }}>
       <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
         <div className="logo" data-od-id="logo" onClick={() => onNavigate('dashboard')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }} role="button" tabIndex="0" onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('dashboard'); } }}>
-          <img src="/logo.png" alt="PersonControl" style={{ height: '44px', width: 'auto', borderRadius: '8px' }} />
+          <img src="/logo.png" alt="PersonControl" style={{ height: '56px', width: 'auto', borderRadius: '8px' }} />
         </div>
         {user && (
           <span className="greeting-text" style={{ fontSize: 'var(--text-xl)', fontWeight: '700', color: 'var(--fg)', letterSpacing: '-0.02em' }}>

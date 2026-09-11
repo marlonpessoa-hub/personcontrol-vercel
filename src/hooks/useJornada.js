@@ -42,6 +42,12 @@ function chaveDiaLocal(iso) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
+function gastosParaSupabase(j) {
+  const gastos = (j.gastos || []).map(g => ({ ...g, tipo: g.tipo || 'gasto' }));
+  const gorjetas = (j.gorjetas || []).map(g => ({ ...g, tipo: g.tipo || 'gorjeta' }));
+  return [...gastos, ...gorjetas];
+}
+
 function paraSupabase(j, userId) {
   return {
     id: j.id,
@@ -62,7 +68,7 @@ function paraSupabase(j, userId) {
     minutos_pausados: j.minutosPausados || 0,
     pausada: !!j.pausada,
     pausas: j.pausas || [],
-    gastos: j.gastos || [],
+    gastos: gastosParaSupabase(j),
     observacoes: j.observacoes || '',
     editado_em: j.editadoEm || null,
     criado_em: j.dataInicio,
@@ -70,6 +76,14 @@ function paraSupabase(j, userId) {
 }
 
 function paraLocal(j) {
+  const itens = (j.gastos || []).map(g => ({ ...g, tipo: g.tipo || (g.descricao === undefined ? 'gorjeta' : 'gasto') }));
+  const gorjetas = [];
+  const gastos = [];
+  for (const item of itens) {
+    if (item.tipo === 'gorjeta') gorjetas.push(item);
+    else gastos.push(item);
+  }
+
   return {
     id: j.id,
     dataInicio: j.data_inicio,
@@ -81,14 +95,16 @@ function paraLocal(j) {
     valorApp: j.valor_app,
     valorDinheiro: j.valor_dinheiro,
     totalGanho: j.total_ganho,
-    totalGastos: j.total_gastos,
     lucroLiquido: j.lucro_liquido,
     saldoFinal: j.saldo_final,
     duracaoMinutos: j.duracao_minutos,
     minutosPausados: j.minutos_pausados,
     pausada: j.pausada,
     pausas: j.pausas || [],
-    gastos: j.gastos || [],
+    gastos,
+    totalGastos: j.total_gastos != null ? j.total_gastos : gastos.reduce((acc, g) => acc + g.valor, 0),
+    gorjetas,
+    totalGorjetas: gorjetas.reduce((acc, g) => acc + g.valor, 0),
     observacoes: j.observacoes || '',
     editadoEm: j.editado_em,
   };
@@ -195,6 +211,8 @@ const useJornada = (userId) => {
       pausas: [],
       gastos: [],
       totalGastos: 0,
+      gorjetas: [],
+      totalGorjetas: 0,
       lucroLiquido: 0,
       observacoes: ''
     };
@@ -228,11 +246,12 @@ const useJornada = (userId) => {
 
     const novosGastos = [...(jornadaAtiva.gastos || []), gasto];
     const totalGastos = novosGastos.reduce((acc, g) => acc + g.valor, 0);
+    const totalGorjetas = jornadaAtiva.totalGorjetas || 0;
     const atualizada = {
       ...jornadaAtiva,
       gastos: novosGastos,
       totalGastos,
-      lucroLiquido: (jornadaAtiva.totalGanho || 0) - totalGastos
+      lucroLiquido: (jornadaAtiva.totalGanho || 0) + totalGorjetas - totalGastos
     };
 
     setJornadaAtiva(atualizada);
@@ -242,7 +261,7 @@ const useJornada = (userId) => {
         const { error } = await supabase
           .from('jornadas')
           .update({
-            gastos: novosGastos,
+            gastos: gastosParaSupabase(atualizada),
             total_gastos: totalGastos,
             lucro_liquido: atualizada.lucroLiquido,
           })
@@ -256,6 +275,46 @@ const useJornada = (userId) => {
     return gasto;
   }, [jornadaAtiva, usarSupabase]);
 
+  // ── Adicionar gorjeta ──
+  const adicionarGorjeta = useCallback(async (valor) => {
+    const v = paraNumero(valor);
+    if (!jornadaAtiva || v <= 0) return null;
+
+    const gorjeta = {
+      id: crypto.randomUUID(),
+      valor: v,
+      criadoEm: new Date().toISOString()
+    };
+
+    const novasGorjetas = [...(jornadaAtiva.gorjetas || []), gorjeta];
+    const totalGorjetas = novasGorjetas.reduce((acc, g) => acc + g.valor, 0);
+    const atualizada = {
+      ...jornadaAtiva,
+      gorjetas: novasGorjetas,
+      totalGorjetas,
+      lucroLiquido: (jornadaAtiva.totalGanho || 0) + totalGorjetas - (jornadaAtiva.totalGastos || 0)
+    };
+
+    setJornadaAtiva(atualizada);
+
+    if (usarSupabase) {
+      try {
+        const { error } = await supabase
+          .from('jornadas')
+          .update({
+            gastos: gastosParaSupabase(atualizada),
+            lucro_liquido: atualizada.lucroLiquido,
+          })
+          .eq('id', jornadaAtiva.id);
+        if (error) console.error('Erro ao salvar gorjeta:', error);
+      } catch (err) {
+        console.error('Erro de rede ao salvar gorjeta:', err);
+      }
+    }
+
+    return gorjeta;
+  }, [jornadaAtiva, usarSupabase]);
+
   // ── Remover gasto ──
   const removerGasto = useCallback(async (id) => {
     setJornadaAtiva(prev => {
@@ -266,16 +325,42 @@ const useJornada = (userId) => {
         ...prev,
         gastos,
         totalGastos,
-        lucroLiquido: (prev.totalGanho || 0) - totalGastos
+        lucroLiquido: (prev.totalGanho || 0) + (prev.totalGorjetas || 0) - totalGastos
       };
 
       if (usarSupabase) {
         supabase.from('jornadas').update({
-          gastos,
+          gastos: gastosParaSupabase(atualizada),
           total_gastos: totalGastos,
           lucro_liquido: atualizada.lucroLiquido,
         }).eq('id', prev.id).then(({ error }) => {
           if (error) console.error('Erro ao remover gasto:', error);
+        });
+      }
+
+      return atualizada;
+    });
+  }, [usarSupabase]);
+
+  // ── Remover gorjeta ──
+  const removerGorjeta = useCallback(async (id) => {
+    setJornadaAtiva(prev => {
+      if (!prev) return prev;
+      const gorjetas = (prev.gorjetas || []).filter(g => g.id !== id);
+      const totalGorjetas = gorjetas.reduce((acc, g) => acc + g.valor, 0);
+      const atualizada = {
+        ...prev,
+        gorjetas,
+        totalGorjetas,
+        lucroLiquido: (prev.totalGanho || 0) + totalGorjetas - (prev.totalGastos || 0)
+      };
+
+      if (usarSupabase) {
+        supabase.from('jornadas').update({
+          gastos: gastosParaSupabase(atualizada),
+          lucro_liquido: atualizada.lucroLiquido,
+        }).eq('id', prev.id).then(({ error }) => {
+          if (error) console.error('Erro ao remover gorjeta:', error);
         });
       }
 
@@ -354,8 +439,9 @@ const useJornada = (userId) => {
     const minutosPausados = calcularMinutosPausados({ pausas }, agora);
     const duracaoLiquida = Math.max(0, duracaoBruta - minutosPausados);
 
-    const totalGanho = app + dinheiro;
-    const saldoFinal = jornadaAtiva.saldoInicial + totalGanho;
+    const totalGorjetas = jornadaAtiva.totalGorjetas || 0;
+    const totalGanho = app + dinheiro + totalGorjetas;
+    const saldoFinal = jornadaAtiva.saldoInicial + totalGanho - (jornadaAtiva.totalGastos || 0);
     const totalGastos = jornadaAtiva.totalGastos || 0;
 
     const jornadaFinalizada = {
@@ -367,6 +453,8 @@ const useJornada = (userId) => {
       saldoFinal,
       gastos: jornadaAtiva.gastos || [],
       totalGastos,
+      gorjetas: jornadaAtiva.gorjetas || [],
+      totalGorjetas,
       lucroLiquido: totalGanho - totalGastos,
       duracaoMinutos: duracaoLiquida,
       minutosPausados,
@@ -415,8 +503,8 @@ const useJornada = (userId) => {
 
       const valorApp = paraNumero(dadosAtualizados.valorApp, jornada.valorApp);
       const valorDinheiro = paraNumero(dadosAtualizados.valorDinheiro, jornada.valorDinheiro);
-      const totalGanho = valorApp + valorDinheiro;
-      const saldoFinal = jornada.saldoInicial + totalGanho;
+      const totalGanho = valorApp + valorDinheiro + (jornada.totalGorjetas || 0);
+      const saldoFinal = jornada.saldoInicial + totalGanho - (jornada.totalGastos || 0);
 
       const kmVazio = (v) => v === '' || v === null || v === undefined;
       const kmInicial = kmVazio(dadosAtualizados.kmInicial)
@@ -497,6 +585,8 @@ const useJornada = (userId) => {
     retomarJornada,
     adicionarGasto,
     removerGasto,
+    adicionarGorjeta,
+    removerGorjeta,
     encerrarJornada,
     excluirJornada,
     editarJornada,

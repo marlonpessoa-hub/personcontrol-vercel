@@ -73,7 +73,10 @@ serve(async (req) => {
       minutos_pausados: Number(j.minutosPausados || 0),
       pausada: Boolean(j.pausada || false),
       pausas: j.pausas || [],
-      gastos: j.gastos || [],
+      gastos: [
+        ...(j.gastos || []).map((g) => ({ ...g, tipo: g.tipo || "gasto" })),
+        ...(j.gorjetas || []).map((g) => ({ ...g, tipo: "gorjeta" })),
+      ],
       total_gastos: Number(j.totalGastos || 0),
       lucro_liquido: j.lucroLiquido !== undefined && j.lucroLiquido !== null ? Number(j.lucroLiquido) : null,
       observacoes: j.observacoes || "",

@@ -1,9 +1,11 @@
 import Cronometro from '../UI/Cronometro';
 import { formatarMoeda, formatarHora, formatarNumero } from '../../utils/formatters';
 
-const DashboardAtivo = ({ jornadaAtiva, onEncerrar, onTogglePausa, onAddGasto, onRemoveGasto }) => {
+const DashboardAtivo = ({ jornadaAtiva, onEncerrar, onTogglePausa, onAddGasto, onRemoveGasto, onAddGorjeta, onRemoveGorjeta }) => {
   const emPausa = Boolean(jornadaAtiva?.pausada);
   const gastos = jornadaAtiva?.gastos || [];
+  const gorjetas = jornadaAtiva?.gorjetas || [];
+  const totalGorjetas = jornadaAtiva?.totalGorjetas || 0;
 
   return (
     <div className="page page-animate" data-od-id="dashboard-ativo">
@@ -65,6 +67,15 @@ const DashboardAtivo = ({ jornadaAtiva, onEncerrar, onTogglePausa, onAddGasto, o
         </button>
 
         <button
+          className="btn btn-ghost btn-press"
+          onClick={onAddGorjeta}
+          data-od-id="btn-add-gorjeta"
+          style={{ padding: 'var(--space-4)', fontSize: 'var(--text-base)', borderRadius: 'var(--radius-lg)', color: '#22c55e' }}
+        >
+          + ADICIONAR GORJETA
+        </button>
+
+        <button
           className="btn btn-danger btn-press"
           onClick={onEncerrar}
           data-od-id="btn-encerrar-jornada"
@@ -73,6 +84,35 @@ const DashboardAtivo = ({ jornadaAtiva, onEncerrar, onTogglePausa, onAddGasto, o
           ⏹ ENCERRAR JORNADA
         </button>
       </div>
+
+      {gorjetas.length > 0 && (
+        <div style={{ marginTop: 'var(--space-5)' }} data-od-id="lista-gorjetas-jornada">
+          <div style={{ fontSize: 'var(--text-sm)', fontWeight: '600', color: 'var(--muted)', marginBottom: 'var(--space-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Gorjetas da jornada ({gorjetas.length} · {formatarMoeda(totalGorjetas)})
+          </div>
+          {gorjetas.map((gorjeta) => (
+            <div key={gorjeta.id} className="journey-item" data-od-id={`gorjeta-${gorjeta.id}`} style={{ border: 'none', boxShadow: 'var(--elev-raised)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4)' }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 'var(--text-base)', fontWeight: '600', color: '#22c55e' }}>Gorjeta</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                <span style={{ fontSize: 'var(--text-lg)', fontWeight: '700', color: '#22c55e' }}>
+                  +{formatarMoeda(gorjeta.valor)}
+                </span>
+                <button
+                  className="modal-close"
+                  onClick={() => onRemoveGorjeta(gorjeta.id)}
+                  aria-label="Remover gorjeta"
+                  data-od-id={`btn-remover-gorjeta-${gorjeta.id}`}
+                  style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {gastos.length > 0 && (
         <div style={{ marginTop: 'var(--space-5)' }} data-od-id="lista-gastos-jornada">
