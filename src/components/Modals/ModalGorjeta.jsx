@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal';
+import MoneyInput from '../UI/MoneyInput';
 
 const ModalGorjeta = ({ isOpen, onClose, onConfirm }) => {
   const [valor, setValor] = useState('');
@@ -17,14 +18,11 @@ const ModalGorjeta = ({ isOpen, onClose, onConfirm }) => {
     <Modal isOpen={isOpen} onClose={onClose} title="Adicionar Gorjeta">
       <div className="form-group">
         <label className="form-label" data-od-id="label-gorjeta-valor">Valor da Gorjeta (R$)</label>
-        <input
-          type="number"
+        <MoneyInput
           className="form-input"
           value={valor}
-          onChange={(e) => setValor(e.target.value)}
+          onChange={setValor}
           placeholder="0,00"
-          step="0.01"
-          min="0.01"
           data-od-id="input-gorjeta-valor"
           autoFocus
         />

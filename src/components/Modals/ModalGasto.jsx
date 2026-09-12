@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal';
+import MoneyInput from '../UI/MoneyInput';
 
 const SUGESTOES = ['Combustível', 'Alimentação', 'Lavagem', 'Pedágio', 'Estacionamento'];
 
@@ -47,14 +48,11 @@ const ModalGasto = ({ isOpen, onClose, onConfirm }) => {
 
       <div className="form-group">
         <label className="form-label" data-od-id="label-gasto-valor">Valor (R$)</label>
-        <input
-          type="number"
+        <MoneyInput
           className="form-input"
           value={valor}
-          onChange={(e) => setValor(e.target.value)}
+          onChange={setValor}
           placeholder="0,00"
-          step="0.01"
-          min="0.01"
           data-od-id="input-gasto-valor"
         />
       </div>

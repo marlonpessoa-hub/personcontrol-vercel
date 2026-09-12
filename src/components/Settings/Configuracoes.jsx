@@ -1,3 +1,5 @@
+import MoneyInput from '../UI/MoneyInput';
+
 const Configuracoes = ({ configuracoes, onAtualizar }) => (
   <div className="page page-animate" data-od-id="configuracoes">
     <h1 className="page-title">Configurações</h1>
@@ -19,13 +21,11 @@ const Configuracoes = ({ configuracoes, onAtualizar }) => (
       <label className="form-label" data-od-id="label-meta">
         Meta Diária de Ganhos (R$)
       </label>
-      <input
-        type="number"
+      <MoneyInput
         className="form-input"
         value={configuracoes.metaDiaria}
-        onChange={(e) => onAtualizar({ metaDiaria: parseFloat(e.target.value) || 0 })}
-        step="10"
-        min="0"
+        onChange={(valor) => onAtualizar({ metaDiaria: parseFloat(valor) || 0 })}
+        placeholder="0,00"
         data-od-id="input-meta"
       />
       <div className="form-hint">Defina uma meta para acompanhar seu progresso</div>

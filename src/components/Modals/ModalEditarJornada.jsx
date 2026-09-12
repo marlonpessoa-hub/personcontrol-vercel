@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from './Modal';
+import MoneyInput from '../UI/MoneyInput';
 import { formatarMoeda, formatarData, formatarHora, formatarDuracao, formatarNumero } from '../../utils/formatters';
 
 const ModalEditarJornada = ({ isOpen, onClose, onConfirm, jornada }) => {
@@ -86,14 +87,11 @@ const ModalEditarJornada = ({ isOpen, onClose, onConfirm, jornada }) => {
         <label className="form-label" data-od-id="edit-label-valor-app">
           Valor recebido pelo aplicativo 99 (R$)
         </label>
-        <input
-          type="number"
+        <MoneyInput
           className="form-input"
           value={valorApp}
-          onChange={(e) => setValorApp(e.target.value)}
+          onChange={setValorApp}
           placeholder="0,00"
-          step="0.01"
-          min="0"
           data-od-id="edit-input-valor-app"
         />
       </div>
@@ -102,14 +100,11 @@ const ModalEditarJornada = ({ isOpen, onClose, onConfirm, jornada }) => {
         <label className="form-label" data-od-id="edit-label-valor-dinheiro">
           Valor recebido em dinheiro (R$)
         </label>
-        <input
-          type="number"
+        <MoneyInput
           className="form-input"
           value={valorDinheiro}
-          onChange={(e) => setValorDinheiro(e.target.value)}
+          onChange={setValorDinheiro}
           placeholder="0,00"
-          step="0.01"
-          min="0"
           data-od-id="edit-input-valor-dinheiro"
         />
       </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal';
+import MoneyInput from '../UI/MoneyInput';
 
 const ModalIniciarJornada = ({ isOpen, onClose, onConfirm }) => {
   const [saldo, setSaldo] = useState('');
@@ -24,14 +25,11 @@ const ModalIniciarJornada = ({ isOpen, onClose, onConfirm }) => {
         <label className="form-label" data-od-id="label-saldo-inicial">
           Saldo Inicial (R$)
         </label>
-        <input
-          type="number"
+        <MoneyInput
           className="form-input"
           value={saldo}
-          onChange={(e) => setSaldo(e.target.value)}
+          onChange={setSaldo}
           placeholder="0,00"
-          step="0.01"
-          min="0"
           data-od-id="input-saldo-inicial"
         />
         <div className="form-hint" data-od-id="hint-saldo">

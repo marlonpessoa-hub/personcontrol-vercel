@@ -47,3 +47,12 @@ export const paraNumero = (valor, fallback = 0) => {
   const numero = parseFloat(valor);
   return Number.isFinite(numero) ? numero : fallback;
 };
+
+export const digitosParaMoeda = (digitos) => {
+  const numeros = String(digitos).replace(/\D/g, '');
+  if (!numeros) return '';
+  const inteiro = numeros.slice(0, -2) || '0';
+  const centavos = numeros.slice(-2).padStart(2, '0');
+  const inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${inteiroFormatado},${centavos}`;
+};
