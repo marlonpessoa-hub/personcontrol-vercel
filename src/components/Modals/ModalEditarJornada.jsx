@@ -34,6 +34,9 @@ const ModalEditarJornada = ({ isOpen, onClose, onConfirm, jornada }) => {
       ? Math.max(0, kmFimNum - kmIniNum)
       : null;
 
+  const duracaoMinutos = jornada?.duracaoMinutos || 0;
+  const valorPorHora = duracaoMinutos > 0 ? totalGanho / (duracaoMinutos / 60) : null;
+
   const handleConfirm = () => {
     if (kmInvalido) return;
     onConfirm(jornada.id, {
@@ -181,6 +184,15 @@ const ModalEditarJornada = ({ isOpen, onClose, onConfirm, jornada }) => {
           <span className="detail-label">KM Rodado</span>
           <span className="detail-value accent" data-od-id="edit-detail-km-rodado">
             {formatarNumero(kmRodadoPrevisto)} km
+          </span>
+        </div>
+      )}
+
+      {valorPorHora !== null && (
+        <div className="detail-row">
+          <span className="detail-label">Valor por Hora</span>
+          <span className="detail-value accent" data-od-id="edit-detail-valor-por-hora">
+            {formatarMoeda(valorPorHora)}
           </span>
         </div>
       )}

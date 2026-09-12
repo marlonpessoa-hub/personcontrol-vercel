@@ -23,6 +23,7 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
   const kmValido = kmFinal !== '' && Number.isFinite(kmFinalNum) && (kmInicial === null || kmFinalNum >= kmInicial);
   const kmRodadoPrevisto = kmValido && kmInicial !== null ? kmFinalNum - kmInicial : null;
   const valorPorKm = kmRodadoPrevisto != null && kmRodadoPrevisto > 0 ? totalGanho / kmRodadoPrevisto : null;
+  const valorPorHora = duracao > 0 ? totalGanho / (duracao / 60) : null;
 
   const handleConfirm = () => {
     if (!kmValido) return;
@@ -132,6 +133,14 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
           <span className="detail-label">Valor por KM</span>
           <span className="detail-value accent" data-od-id="detail-valor-por-km">
             {formatarMoeda(valorPorKm)}
+          </span>
+        </div>
+      )}
+      {valorPorHora !== null && (
+        <div className="detail-row">
+          <span className="detail-label">Valor por Hora</span>
+          <span className="detail-value accent" data-od-id="detail-valor-por-hora">
+            {formatarMoeda(valorPorHora)}
           </span>
         </div>
       )}
