@@ -18,20 +18,44 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
+  const redimensionarImagem = (file, maxTamanho = 300) => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (event) => {
-        const photoUrl = event.target.result;
-        setProfilePhoto(photoUrl);
-        if (user?.id) {
-          localStorage.setItem(chaveFotoPerfil(user.id), photoUrl);
-          localStorage.removeItem(chaveFotoRemovida(user.id));
-        }
-        setPhotoRemovida(false);
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let { width, height } = img;
+          if (width > height) {
+            if (width > maxTamanho) { height = Math.round((height * maxTamanho) / width); width = maxTamanho; }
+          } else {
+            if (height > maxTamanho) { width = Math.round((width * maxTamanho) / height); height = maxTamanho; }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = event.target.result;
       };
       reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const photoUrl = await redimensionarImagem(file);
+      setProfilePhoto(photoUrl);
+      if (user?.id) {
+        try {
+          localStorage.setItem(chaveFotoPerfil(user.id), photoUrl);
+          localStorage.removeItem(chaveFotoRemovida(user.id));
+        } catch {
+          console.warn('Falha ao salvar foto no localStorage');
+        }
+      }
+      setPhotoRemovida(false);
     }
     setShowPhotoModal(false);
   };
@@ -44,13 +68,24 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave
     fileInputRef.current?.click();
   };
 
-  const handleUseGooglePhoto = () => {
+  const handleUseGooglePhoto = async () => {
     const googleFoto = getFotoGoogle(user);
     if (googleFoto && user?.id) {
-      setProfilePhoto(googleFoto);
-      localStorage.setItem(chaveFotoPerfil(user.id), googleFoto);
-      localStorage.removeItem(chaveFotoRemovida(user.id));
-      setPhotoRemovida(false);
+      try {
+        const response = await fetch(googleFoto);
+        const blob = await response.blob();
+        const file = new File([blob], 'google-photo.jpg', { type: 'image/jpeg' });
+        const photoUrl = await redimensionarImagem(file);
+        setProfilePhoto(photoUrl);
+        localStorage.setItem(chaveFotoPerfil(user.id), photoUrl);
+        localStorage.removeItem(chaveFotoRemovida(user.id));
+        setPhotoRemovida(false);
+      } catch {
+        setProfilePhoto(googleFoto);
+        localStorage.setItem(chaveFotoPerfil(user.id), googleFoto);
+        localStorage.removeItem(chaveFotoRemovida(user.id));
+        setPhotoRemovida(false);
+      }
     }
     setShowPhotoModal(false);
   };
