@@ -21,6 +21,7 @@ const ModalEditarJornada = ({ isOpen, onClose, onConfirm, jornada }) => {
   }, [jornada]);
 
   const totalGanho = (parseFloat(valorApp) || 0) + (parseFloat(valorDinheiro) || 0) + (jornada?.totalGorjetas || 0);
+  const totalDizimo = totalGanho * 0.10;
   const saldoFinal = jornada ? jornada.saldoInicial + totalGanho - (jornada.totalGastos || 0) : 0;
 
   const kmIniNum = parseFloat(kmInicial);
@@ -170,6 +171,12 @@ const ModalEditarJornada = ({ isOpen, onClose, onConfirm, jornada }) => {
         <span className="detail-label">Total Ganho</span>
         <span className="detail-value accent" data-od-id="edit-detail-total-ganho">
           {formatarMoeda(totalGanho)}
+        </span>
+      </div>
+      <div className="detail-row">
+        <span className="detail-label">Dízimo (10%)</span>
+        <span className="detail-value" style={{ color: '#f59e0b' }} data-od-id="edit-detail-dizimo">
+          {formatarMoeda(totalDizimo)}
         </span>
       </div>
       <div className="detail-row">

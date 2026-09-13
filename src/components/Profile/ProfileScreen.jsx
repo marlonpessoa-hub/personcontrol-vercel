@@ -132,10 +132,11 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave
   const estatisticas = useMemo(() => {
     const totalJornadas = jornadas.length;
     const totalGanho = jornadas.reduce((acc, j) => acc + j.totalGanho, 0);
+    const totalDizimo = jornadas.reduce((acc, j) => acc + (j.totalDizimo || j.totalGanho * 0.10), 0);
     const melhorDia = jornadas.length > 0 
       ? jornadas.reduce((melhor, j) => j.totalGanho > melhor.totalGanho ? j : melhor, jornadas[0])
       : null;
-    return { totalJornadas, totalGanho, melhorDia };
+    return { totalJornadas, totalGanho, totalDizimo, melhorDia };
   }, [jornadas]);
 
   return (
@@ -267,6 +268,12 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave
               {formatarMoeda(estatisticas.totalGanho)}
             </div>
             <div className="profile-stat-label">Total Ganho</div>
+          </div>
+          <div className="profile-stat-card">
+            <div className="profile-stat-value" style={{ color: '#f59e0b' }} data-od-id="profile-total-dizimo">
+              {formatarMoeda(estatisticas.totalDizimo)}
+            </div>
+            <div className="profile-stat-label">Total Dízimo</div>
           </div>
         </div>
       </div>

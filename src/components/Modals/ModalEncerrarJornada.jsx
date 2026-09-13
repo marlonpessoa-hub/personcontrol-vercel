@@ -9,6 +9,7 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
   const [kmFinal, setKmFinal] = useState('');
 
   const totalGanho = (parseFloat(valorApp) || 0) + (parseFloat(valorDinheiro) || 0) + (jornadaAtiva?.totalGorjetas || 0);
+  const totalDizimo = totalGanho * 0.10;
   const totalGastos = jornadaAtiva?.totalGastos || 0;
   const lucroLiquido = totalGanho - totalGastos;
   const saldoFinal = jornadaAtiva ? jornadaAtiva.saldoInicial + lucroLiquido : 0;
@@ -148,6 +149,12 @@ const ModalEncerrarJornada = ({ isOpen, onClose, onConfirm, jornadaAtiva }) => {
         <span className="detail-label">Total Ganho</span>
         <span className="detail-value accent" data-od-id="detail-total-ganho">
           {formatarMoeda(totalGanho)}
+        </span>
+      </div>
+      <div className="detail-row">
+        <span className="detail-label">Dízimo (10%)</span>
+        <span className="detail-value" style={{ color: '#f59e0b' }} data-od-id="detail-dizimo">
+          {formatarMoeda(totalDizimo)}
         </span>
       </div>
       {(jornadaAtiva?.totalGorjetas || 0) > 0 && (

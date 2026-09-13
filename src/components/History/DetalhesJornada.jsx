@@ -87,6 +87,12 @@ const DetalhesJornada = ({ jornada, onVoltar, onExcluir, onEditar }) => {
           <span className="detail-label">Total Ganho</span>
           <span className="detail-value accent">{formatarMoeda(jornada.totalGanho)}</span>
         </div>
+        <div className="detail-row">
+          <span className="detail-label">Dízimo (10%)</span>
+          <span className="detail-value" style={{ color: '#f59e0b' }}>
+            {formatarMoeda(jornada.totalDizimo || jornada.totalGanho * 0.10)}
+          </span>
+        </div>
         {jornada.totalGastos > 0 && (
           <>
             {(jornada.gastos || []).map((gasto) => (

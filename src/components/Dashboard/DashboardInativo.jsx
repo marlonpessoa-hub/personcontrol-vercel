@@ -30,9 +30,14 @@ const DashboardInativo = ({ onIniciar, estatisticas, ultimaJornada, mesReferenci
 
       <div className="card card-animate" style={{ padding: 'var(--space-5)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--elev-raised)', border: 'none' }} data-od-id="card-total-mes">
         <div style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', marginBottom: 'var(--space-2)' }}>Total do Mês</div>
-        <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--accent)', marginBottom: 'var(--space-4)' }}>
+        <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--accent)', marginBottom: 'var(--space-1)' }}>
           {formatarMoeda(estatisticas.totalGanho)}
         </div>
+        {estatisticas.totalDizimo > 0 && (
+          <div style={{ fontSize: 'var(--text-sm)', color: '#f59e0b', marginBottom: 'var(--space-4)' }}>
+            {formatarMoeda(estatisticas.totalDizimo)} separado (10%)
+          </div>
+        )}
         
         <div style={{ display: 'flex', borderTop: '1px solid var(--border-soft)', paddingTop: 'var(--space-4)', gap: 'var(--space-4)' }}>
           <div style={{ flex: 1 }}>

@@ -441,6 +441,7 @@ const useJornada = (userId) => {
 
     const totalGorjetas = jornadaAtiva.totalGorjetas || 0;
     const totalGanho = app + dinheiro + totalGorjetas;
+    const totalDizimo = totalGanho * 0.10;
     const saldoFinal = jornadaAtiva.saldoInicial + totalGanho - (jornadaAtiva.totalGastos || 0);
     const totalGastos = jornadaAtiva.totalGastos || 0;
 
@@ -450,6 +451,7 @@ const useJornada = (userId) => {
       valorApp: app,
       valorDinheiro: dinheiro,
       totalGanho,
+      totalDizimo,
       saldoFinal,
       gastos: jornadaAtiva.gastos || [],
       totalGastos,
@@ -504,6 +506,7 @@ const useJornada = (userId) => {
       const valorApp = paraNumero(dadosAtualizados.valorApp, jornada.valorApp);
       const valorDinheiro = paraNumero(dadosAtualizados.valorDinheiro, jornada.valorDinheiro);
       const totalGanho = valorApp + valorDinheiro + (jornada.totalGorjetas || 0);
+      const totalDizimo = totalGanho * 0.10;
       const saldoFinal = jornada.saldoInicial + totalGanho - (jornada.totalGastos || 0);
 
       const kmVazio = (v) => v === '' || v === null || v === undefined;
@@ -525,6 +528,7 @@ const useJornada = (userId) => {
         valorApp,
         valorDinheiro,
         totalGanho,
+        totalDizimo,
         saldoFinal,
         lucroLiquido: totalGanho - (jornada.totalGastos || 0),
         kmInicial,
@@ -567,10 +571,12 @@ const useJornada = (userId) => {
 
     const diasTrabalhados = new Set(jornadasMes.map(j => chaveDiaLocal(j.dataInicio))).size;
     const totalGanho = jornadasMes.reduce((acc, j) => acc + j.totalGanho, 0);
+    const totalDizimo = jornadasMes.reduce((acc, j) => acc + (j.totalDizimo || j.totalGanho * 0.10), 0);
 
     return {
       diasTrabalhados,
       totalGanho,
+      totalDizimo,
       totalHoras: jornadasMes.reduce((acc, j) => acc + j.duracaoMinutos, 0) / 60,
       ganhoMedio: diasTrabalhados > 0 ? totalGanho / diasTrabalhados : 0
     };
