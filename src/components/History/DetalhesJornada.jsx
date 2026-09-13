@@ -117,6 +117,12 @@ const DetalhesJornada = ({ jornada, onVoltar, onExcluir, onEditar }) => {
             <span className="detail-value accent">{formatarMoeda(jornada.lucroLiquido)}</span>
           </div>
         )}
+        {(jornada.valorPorHora || 0) > 0 && (
+          <div className="detail-row">
+            <span className="detail-label">Valor por Hora</span>
+            <span className="detail-value accent">{formatarMoeda(jornada.valorPorHora)}</span>
+          </div>
+        )}
         <div className="detail-row">
           <span className="detail-label">Saldo Final</span>
           <span className="detail-value accent">{formatarMoeda(jornada.saldoFinal)}</span>

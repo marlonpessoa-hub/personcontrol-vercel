@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import supabase, { isSupabaseConfigured } from '../supabase';
 import { nativeStorage, vibrar } from './useNative';
 import { calcularDuracao, calcularMinutosPausados, paraNumero } from '../utils/formatters';
@@ -66,6 +66,7 @@ function paraSupabase(j, userId) {
     saldo_final: paraNumero(j.saldoFinal),
     duracao_minutos: j.duracaoMinutos || 0,
     minutos_pausados: j.minutosPausados || 0,
+    valor_por_hora: j.valorPorHora || 0,
     pausada: !!j.pausada,
     pausas: j.pausas || [],
     gastos: gastosParaSupabase(j),
@@ -99,6 +100,7 @@ function paraLocal(j) {
     saldoFinal: j.saldo_final,
     duracaoMinutos: j.duracao_minutos,
     minutosPausados: j.minutos_pausados,
+    valorPorHora: j.valor_por_hora || 0,
     pausada: j.pausada,
     pausas: j.pausas || [],
     gastos,
@@ -113,6 +115,7 @@ function paraLocal(j) {
 const useJornada = (userId) => {
   const [jornadas, setJornadas] = useState([]);
   const [jornadaAtiva, setJornadaAtiva] = useState(null);
+  const [dizimos, setDizimos] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
   const usarSupabase = isSupabaseConfigured && !!userId;
@@ -169,6 +172,21 @@ const useJornada = (userId) => {
           setJornadaAtiva(ativa);
           await salvarCache(chaveAtiva(userId), ativa);
         }
+
+        // 4. Buscar dizimos do Supabase
+        const { data: remoteDizimos, error: errD } = await Promise.race([
+          supabase
+            .from('dizimos')
+            .select('*')
+            .eq('user_id', userId)
+            .order('data_jornada', { ascending: false }),
+          timeout(15000)
+        ]);
+
+        if (!cancelado && !errD && remoteDizimos) {
+          setDizimos(remoteDizimos);
+          await salvarCache(`personcontrol_dizimos:${userId}`, remoteDizimos);
+        }
       } catch (err) {
         console.error('Erro ao buscar jornadas do Supabase, usando cache:', err);
       } finally {
@@ -191,6 +209,11 @@ const useJornada = (userId) => {
     salvarCache(chaveAtiva(userId), jornadaAtiva);
   }, [jornadaAtiva, userId]);
 
+  useEffect(() => {
+    if (!userId) return;
+    salvarCache(`personcontrol_dizimos:${userId}`, dizimos);
+  }, [dizimos, userId]);
+
   // ── Iniciar jornada ──
   const iniciarJornada = useCallback(async (saldoInicial, kmInicial) => {
     const novaJornada = {
@@ -207,6 +230,7 @@ const useJornada = (userId) => {
       saldoFinal: 0,
       duracaoMinutos: 0,
       minutosPausados: 0,
+      valorPorHora: 0,
       pausada: false,
       pausas: [],
       gastos: [],
@@ -444,6 +468,7 @@ const useJornada = (userId) => {
     const totalDizimo = totalGanho * 0.10;
     const saldoFinal = jornadaAtiva.saldoInicial + totalGanho - (jornadaAtiva.totalGastos || 0);
     const totalGastos = jornadaAtiva.totalGastos || 0;
+    const valorPorHora = duracaoLiquida > 0 ? totalGanho / (duracaoLiquida / 60) : 0;
 
     const jornadaFinalizada = {
       ...jornadaAtiva,
@@ -460,6 +485,7 @@ const useJornada = (userId) => {
       lucroLiquido: totalGanho - totalGastos,
       duracaoMinutos: duracaoLiquida,
       minutosPausados,
+      valorPorHora,
       pausada: false,
       pausas,
       kmFinal: temKmInicial ? kmFim : null,
@@ -469,6 +495,18 @@ const useJornada = (userId) => {
     setJornadas(prev => [jornadaFinalizada, ...prev]);
     setJornadaAtiva(null);
 
+    // Salvar dízimo na tabela
+    const novoDizimo = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      jornada_id: jornadaFinalizada.id,
+      data_jornada: jornadaFinalizada.dataInicio,
+      total_ganho: totalGanho,
+      dizimo_valor: totalDizimo,
+      criado_em: new Date().toISOString()
+    };
+    setDizimos(prev => [novoDizimo, ...prev]);
+
     if (usarSupabase) {
       try {
         const { error } = await supabase
@@ -476,6 +514,19 @@ const useJornada = (userId) => {
           .update(paraSupabase(jornadaFinalizada, userId))
           .eq('id', jornadaFinalizada.id);
         if (error) console.error('Erro ao encerrar jornada:', error);
+
+        // Inserir dízimo na tabela
+        const { error: errDizimo } = await supabase
+          .from('dizimos')
+          .insert({
+            id: novoDizimo.id,
+            user_id: userId,
+            jornada_id: jornadaFinalizada.id,
+            data_jornada: jornadaFinalizada.dataInicio,
+            total_ganho: totalGanho,
+            dizimo_valor: totalDizimo
+          });
+        if (errDizimo) console.error('Erro ao salvar dízimo:', errDizimo);
       } catch (err) {
         console.error('Erro de rede ao encerrar jornada:', err);
       }
@@ -487,11 +538,17 @@ const useJornada = (userId) => {
   // ── Excluir jornada ──
   const excluirJornada = useCallback(async (id) => {
     setJornadas(prev => prev.filter(j => j.id !== id));
+    // Remover dízimo associado
+    setDizimos(prev => prev.filter(d => d.jornada_id !== id));
 
     if (usarSupabase) {
       try {
         const { error } = await supabase.from('jornadas').delete().eq('id', id);
         if (error) console.error('Erro ao excluir jornada:', error);
+
+        // Excluir dízimo associado
+        const { error: errDizimo } = await supabase.from('dizimos').delete().eq('jornada_id', id);
+        if (errDizimo) console.error('Erro ao excluir dízimo:', errDizimo);
       } catch (err) {
         console.error('Erro de rede ao excluir jornada:', err);
       }
@@ -508,6 +565,9 @@ const useJornada = (userId) => {
       const totalGanho = valorApp + valorDinheiro + (jornada.totalGorjetas || 0);
       const totalDizimo = totalGanho * 0.10;
       const saldoFinal = jornada.saldoInicial + totalGanho - (jornada.totalGastos || 0);
+      const valorPorHora = (jornada.duracaoMinutos || 0) > 0
+        ? totalGanho / (jornada.duracaoMinutos / 60)
+        : 0;
 
       const kmVazio = (v) => v === '' || v === null || v === undefined;
       const kmInicial = kmVazio(dadosAtualizados.kmInicial)
@@ -531,6 +591,7 @@ const useJornada = (userId) => {
         totalDizimo,
         saldoFinal,
         lucroLiquido: totalGanho - (jornada.totalGastos || 0),
+        valorPorHora,
         kmInicial,
         kmFinal,
         kmRodado,
@@ -545,6 +606,7 @@ const useJornada = (userId) => {
           total_ganho: totalGanho,
           saldo_final: saldoFinal,
           lucro_liquido: atualizada.lucroLiquido,
+          valor_por_hora: valorPorHora,
           km_inicial: kmInicial,
           km_final: kmFinal,
           km_rodado: kmRodado,
@@ -571,7 +633,15 @@ const useJornada = (userId) => {
 
     const diasTrabalhados = new Set(jornadasMes.map(j => chaveDiaLocal(j.dataInicio))).size;
     const totalGanho = jornadasMes.reduce((acc, j) => acc + j.totalGanho, 0);
-    const totalDizimo = jornadasMes.reduce((acc, j) => acc + (j.totalDizimo || j.totalGanho * 0.10), 0);
+
+    // Calcular dízimo mensal (preferência para dados da tabela, fallback para cálculo)
+    const dizimosMes = dizimos.filter(d => {
+      const data = new Date(d.data_jornada);
+      return data.getMonth() === mes && data.getFullYear() === ano;
+    });
+    const totalDizimo = dizimosMes.length > 0
+      ? dizimosMes.reduce((acc, d) => acc + parseFloat(d.dizimo_valor), 0)
+      : jornadasMes.reduce((acc, j) => acc + (j.totalDizimo || j.totalGanho * 0.10), 0);
 
     return {
       diasTrabalhados,
@@ -580,12 +650,19 @@ const useJornada = (userId) => {
       totalHoras: jornadasMes.reduce((acc, j) => acc + j.duracaoMinutos, 0) / 60,
       ganhoMedio: diasTrabalhados > 0 ? totalGanho / diasTrabalhados : 0
     };
-  }, [jornadas]);
+  }, [jornadas, dizimos]);
+
+  // ── Total de dízimos (global) ──
+  const totalDizimoGlobal = useMemo(() => {
+    return dizimos.reduce((acc, d) => acc + parseFloat(d.dizimo_valor), 0);
+  }, [dizimos]);
 
   return {
     jornadas,
     jornadaAtiva,
+    dizimos,
     carregando,
+    totalDizimoGlobal,
     iniciarJornada,
     pausarJornada,
     retomarJornada,

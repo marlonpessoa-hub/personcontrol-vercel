@@ -3,7 +3,7 @@ import PhotoModal from './PhotoModal';
 import { formatarMoeda, formatarData, formatarHora } from '../../utils/formatters';
 import { getNomeConta, getFotoGoogle, getFotoExibicao, chaveFotoPerfil, chaveFotoRemovida } from '../../utils/user';
 
-const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave, expiraEm, diasRestantes }) => {
+const ProfileScreen = ({ user, configuracoes, jornadas, dizimos, totalDizimoGlobal, onSignOut, onAtivarChave, expiraEm, diasRestantes }) => {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [chave, setChave] = useState('');
   const [ativando, setAtivando] = useState(false);
@@ -132,12 +132,11 @@ const ProfileScreen = ({ user, configuracoes, jornadas, onSignOut, onAtivarChave
   const estatisticas = useMemo(() => {
     const totalJornadas = jornadas.length;
     const totalGanho = jornadas.reduce((acc, j) => acc + j.totalGanho, 0);
-    const totalDizimo = jornadas.reduce((acc, j) => acc + (j.totalDizimo || j.totalGanho * 0.10), 0);
     const melhorDia = jornadas.length > 0 
       ? jornadas.reduce((melhor, j) => j.totalGanho > melhor.totalGanho ? j : melhor, jornadas[0])
       : null;
-    return { totalJornadas, totalGanho, totalDizimo, melhorDia };
-  }, [jornadas]);
+    return { totalJornadas, totalGanho, totalDizimo: totalDizimoGlobal, melhorDia };
+  }, [jornadas, totalDizimoGlobal]);
 
   return (
     <div className="page page-animate" data-od-id="profile-screen">

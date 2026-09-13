@@ -59,6 +59,8 @@ const App = () => {
     jornadas,
     jornadaAtiva,
     carregando: carregandoJornadas,
+    dizimos,
+    totalDizimoGlobal,
     iniciarJornada,
     pausarJornada,
     retomarJornada,
@@ -337,6 +339,8 @@ const App = () => {
           user={auth.user}
           configuracoes={configuracoes}
           jornadas={jornadas}
+          dizimos={dizimos}
+          totalDizimoGlobal={totalDizimoGlobal}
           onSignOut={auth.signOut}
           onAtivarChave={access.ativarChave}
           expiraEm={access.expiraEm}
