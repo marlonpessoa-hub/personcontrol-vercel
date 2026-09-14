@@ -41,6 +41,54 @@ const DetalhesJornada = ({ jornada, onVoltar, onExcluir, onEditar }) => {
             </span>
           </div>
         )}
+        {(jornada.pausas || []).length > 0 && (
+          <>
+            <div className="divider"></div>
+            <div style={{ marginBottom: 'var(--space-2)' }}>
+              <span className="detail-label">Pausas</span>
+            </div>
+            {jornada.pausas.map((pausa, idx) => {
+              const duracaoMs = pausa.fim
+                ? new Date(pausa.fim) - new Date(pausa.inicio)
+                : 0;
+              const duracaoMin = Math.floor(duracaoMs / 60000);
+              return (
+                <div key={idx} style={{ marginBottom: 'var(--space-3)', padding: 'var(--space-3)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
+                  <div className="detail-row">
+                    <span className="detail-label">Pausa {idx + 1}</span>
+                    <span className="detail-value" style={{ fontSize: 'var(--text-xs)', color: 'var(--meta)' }}>
+                      {formatarHora(pausa.inicio)}{pausa.fim ? ` → ${formatarHora(pausa.fim)}` : ' → ...'}
+                    </span>
+                  </div>
+                  {duracaoMin > 0 && (
+                    <div className="detail-row">
+                      <span className="detail-label">Duração</span>
+                      <span className="detail-value" style={{ fontSize: 'var(--text-xs)' }}>{formatarDuracao(duracaoMin)}</span>
+                    </div>
+                  )}
+                  {pausa.km != null && (
+                    <div className="detail-row">
+                      <span className="detail-label">KM ao Pausar</span>
+                      <span className="detail-value" style={{ fontSize: 'var(--text-xs)' }}>{formatarNumero(pausa.km)} km</span>
+                    </div>
+                  )}
+                  {pausa.kmRetorno != null && (
+                    <div className="detail-row">
+                      <span className="detail-label">KM ao Retornar</span>
+                      <span className="detail-value" style={{ fontSize: 'var(--text-xs)' }}>{formatarNumero(pausa.kmRetorno)} km</span>
+                    </div>
+                  )}
+                  {pausa.km != null && pausa.kmRetorno != null && (
+                    <div className="detail-row">
+                      <span className="detail-label">KM Percorrido</span>
+                      <span className="detail-value accent" style={{ fontSize: 'var(--text-xs)' }}>{formatarNumero(pausa.kmRetorno - pausa.km)} km</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </>
+        )}
         {(jornada.kmInicial != null || jornada.kmFinal != null) && (
           <>
             {jornada.kmInicial != null && (

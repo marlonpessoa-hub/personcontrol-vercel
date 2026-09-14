@@ -393,14 +393,18 @@ const useJornada = (userId) => {
   }, [usarSupabase]);
 
   // ── Pausar jornada ──
-  const pausarJornada = useCallback(async () => {
+  const pausarJornada = useCallback(async (kmPausa) => {
     vibrar();
     setJornadaAtiva(prev => {
       if (!prev || prev.pausada) return prev;
+      const pausa = { inicio: new Date().toISOString(), fim: null };
+      if (kmPausa != null && kmPausa !== '') {
+        pausa.km = paraNumero(kmPausa);
+      }
       const atualizada = {
         ...prev,
         pausada: true,
-        pausas: [...(prev.pausas || []), { inicio: new Date().toISOString(), fim: null }]
+        pausas: [...(prev.pausas || []), pausa]
       };
 
       if (usarSupabase) {
@@ -417,14 +421,18 @@ const useJornada = (userId) => {
   }, [usarSupabase]);
 
   // ── Retomar jornada ──
-  const retomarJornada = useCallback(async () => {
+  const retomarJornada = useCallback(async (kmRetorno) => {
     vibrar();
     setJornadaAtiva(prev => {
       if (!prev || !prev.pausada) return prev;
       const pausas = [...(prev.pausas || [])];
       if (pausas.length > 0) {
         const ultima = pausas[pausas.length - 1];
-        pausas[pausas.length - 1] = { ...ultima, fim: new Date().toISOString() };
+        const pausaAtualizada = { ...ultima, fim: new Date().toISOString() };
+        if (kmRetorno != null && kmRetorno !== '') {
+          pausaAtualizada.kmRetorno = paraNumero(kmRetorno);
+        }
+        pausas[pausas.length - 1] = pausaAtualizada;
       }
       const atualizada = { ...prev, pausada: false, pausas };
 

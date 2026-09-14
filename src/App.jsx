@@ -22,6 +22,7 @@ import ModalEncerrarJornada from './components/Modals/ModalEncerrarJornada';
 import ModalEditarJornada from './components/Modals/ModalEditarJornada';
 import ModalGasto from './components/Modals/ModalGasto';
 import ModalGorjeta from './components/Modals/ModalGorjeta';
+import ModalPausa from './components/Modals/ModalPausa';
 
 const App = () => {
   const [pagina, setPagina] = useState('dashboard');
@@ -30,6 +31,8 @@ const App = () => {
   const [modalGasto, setModalGasto] = useState(false);
   const [modalGorjeta, setModalGorjeta] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
+  const [modalPausa, setModalPausa] = useState(false);
+  const [tipoPausa, setTipoPausa] = useState('pausar');
   const [jornadaDetalhesId, setJornadaDetalhesId] = useState(null);
   const [jornadaEditar, setJornadaEditar] = useState(null);
   const [authScreen, setAuthScreen] = useState('login');
@@ -293,9 +296,10 @@ const App = () => {
         <DashboardAtivo
           jornadaAtiva={jornadaAtiva}
           onEncerrar={() => setModalEncerrar(true)}
-          onTogglePausa={() =>
-            jornadaAtiva.pausada ? retomarJornada() : pausarJornada()
-          }
+          onTogglePausa={() => {
+            setTipoPausa(jornadaAtiva.pausada ? 'retomar' : 'pausar');
+            setModalPausa(true);
+          }}
           onAddGasto={() => setModalGasto(true)}
           onRemoveGasto={removerGasto}
           onAddGorjeta={() => setModalGorjeta(true)}
@@ -381,6 +385,19 @@ const App = () => {
         }}
         onConfirm={handleSalvarEdicao}
         jornada={jornadaEditar}
+      />
+
+      <ModalPausa
+        isOpen={modalPausa}
+        onClose={() => setModalPausa(false)}
+        onConfirm={(km) => {
+          if (tipoPausa === 'pausar') {
+            pausarJornada(km);
+          } else {
+            retomarJornada(km);
+          }
+        }}
+        tipo={tipoPausa}
       />
     </div>
   );
