@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from './Modal';
 
 const ModalPausa = ({ isOpen, onClose, onConfirm, tipo }) => {
   const [km, setKm] = useState('');
+
+  useEffect(() => {
+    if (isOpen) setKm('');
+  }, [isOpen]);
 
   const kmValido = km !== '' && parseFloat(km) >= 0 && Number.isFinite(parseFloat(km));
   const isPausa = tipo === 'pausar';
