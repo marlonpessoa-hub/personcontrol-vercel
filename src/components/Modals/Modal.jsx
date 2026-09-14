@@ -2,9 +2,9 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose} data-od-id="modal-overlay" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="pc-modal-overlay" onClick={onClose} data-od-id="modal-overlay" role="dialog" aria-modal="true" aria-label={title}>
       <div 
-        className="modal-content" 
+        className="pc-modal-content" 
         onClick={e => e.stopPropagation()}
         data-od-id="modal-content"
       >

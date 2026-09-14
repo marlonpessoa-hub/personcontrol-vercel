@@ -299,7 +299,7 @@ body {
   transform: none;
 }
 
-.modal-overlay {
+.pc-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.8);
@@ -311,7 +311,7 @@ body {
   animation: fadeIn var(--motion-base) var(--ease-standard);
 }
 
-.modal-content {
+.pc-modal-content {
   background: var(--surface);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
